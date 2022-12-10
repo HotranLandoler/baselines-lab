@@ -1,0 +1,43 @@
+[2022-12-05 22:27]
+MODEL = GCN
+OUT_FEATS = 2
+EPOCHS = 200
+RUNS = 10
+LR = 0.01
+WEIGHT_DECAY = 5e-7
+Final AUC: 0.7305 ± 0.0009
+results: [0.7303224802017212, 0.7305869460105896, 0.7312054634094238, 0.731354832649231,
+0.7309772968292236, 0.7294614315032959, 0.7288768887519836, 0.730852484703064,
+0.7317688465118408, 0.7297366857528687]
+
+[2022-12-06 10:42:50]
+Namespace(epochs=2, runs=1, lr=0.01, weight_decay=5e-07, save_log=True)
+results: [0.6658490896224976]
+Final AUC: 0.6658 ± nan
+
+[2022-12-06 12:25:22]
+Settings: Namespace(epochs=1000, runs=1, lr=0.01, weight_decay=5e-07, save_log=True)
+results: [0.7323298454284668]
+Final AUC: 0.7323 ± nan
+
+[2022-12-06 14:36:52]
+Settings: Namespace(epochs=100, runs=1, lr=0.01, weight_decay=5e-07, loss_weight=100, save_log=True)
+results: [0.7150217294692993]
+Final AUC: 0.7150 ± nan
+
+[2022-12-06 14:38:40]
+Settings: Namespace(epochs=10, runs=1, lr=0.01, weight_decay=5e-07, loss_weight=1, save_log=True)
+results: [0.664950966835022]
+Final AUC: 0.6650 ± nan
+
+[2022-12-06 17:26:40]
+Settings: Namespace(epochs=1, runs=3, lr=0.01, weight_decay=5e-07, loss_weight=50, save_log=True)
+AUC: [0.6365748643875122, 0.6579612493515015, 0.6410588026046753]
+AP: [0.505263090133667, 0.5062376856803894, 0.5053060054779053]
+Final AUC: 0.6452 ± 0.0113, Final AP: 0.5056 ± 0.0006, 
+
+[2022-12-07 15:06:13]
+Settings: Namespace(epochs=1, runs=3, loss_weight=50, save_log=True, num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, weight_decay=5e-07, lr=0.01, metrics=['AUC', 'AP'], log_path='./logs.txt')
+AUC: [0.5768932700157166, 0.6348071694374084, 0.662055253982544]
+AP: [0.5025926232337952, 0.5050418972969055, 0.506504476070404]
+Final AUC: 0.6246 ± 0.0435, Final AP: 0.5047 ± 0.0020, 

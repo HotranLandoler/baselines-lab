@@ -1,0 +1,10 @@
+# Basic configs
+num_classes = 2
+hidden_size = 64
+num_layers = 2
+dropout = 0.0
+weight_decay = 5e-7
+lr = 0.01 # Learning rate
+metrics = ["AUC", "AP"]
+
+log_path = "./logs.txt"
