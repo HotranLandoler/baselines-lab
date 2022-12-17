@@ -1,8 +1,14 @@
+import os
+
 import numpy as np
 import torch
 import cogdl.utils.graph_utils as cog_utils
 from cogdl.data import Graph
 from cogdl.datasets import NodeDataset
+
+RAW_PATH = "data/DGraph/raw/dgraphfin.npz"
+PROCESSED_DIR = "data/DGraph/processed/"
+PROCESSED_NAME = "dgraph.pt"
 
 
 class DGraphDataset(NodeDataset):
@@ -14,14 +20,17 @@ class DGraphDataset(NodeDataset):
     # def processed_file_names(self):
     #     pass
 
-    def __init__(self, path="data/DGraph/processed/dgraph.pt"):
+    def __init__(self, path=PROCESSED_DIR + PROCESSED_NAME):
+        # Make processed dir
+        if not os.path.exists(PROCESSED_DIR):
+            os.mkdir(PROCESSED_DIR)
         self.path = path
         super(DGraphDataset, self).__init__(path, scale_feat=False, metric="accuracy")
 
     def process(self):
         """Load DGraph dataset and transform to `Graph`"""
         print("Processing Data...")
-        data_file = np.load("data/DGraph/raw/dgraphfin.npz")
+        data_file = np.load(RAW_PATH)
 
         edge_index = torch.from_numpy(data_file['edge_index']).transpose(0, 1)
         x = torch.from_numpy(data_file['x']).float()

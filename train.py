@@ -2,6 +2,7 @@ import gc
 
 import torch
 import torch.nn.functional as func
+from torch import Tensor
 from cogdl.data import Graph
 
 import data_processing
@@ -11,20 +12,19 @@ from logger import Logger
 from evaluator import Evaluator
 
 
+# Experiment setup
+args = options.prepare_args()
+device = torch.device(args.device)
+
 # Prepare data
 dataset: Graph = data_processing.DGraphDataset()[0]
+dataset = dataset.to(device)
 data_processing.data_preprocess(dataset)
-
-# Experiment setup
-# OUT_FEATS = 2
-# HIDDEN_SIZE = 64
-# NUM_LAYERS = 2
-# DROPOUT = 0.0
-args = options.prepare_args()
 
 model = models.GCN(in_feats=dataset.num_features, hidden_size=args.hidden_size,
                    out_feats=args.num_classes, dropout=args.dropout, num_layers=args.num_layers)
-weight = torch.tensor([1, args.loss_weight]).float()
+model.to(device)
+weight = torch.tensor([1, args.loss_weight]).to(device).float()
 evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
 logger = Logger(settings=args)
 
