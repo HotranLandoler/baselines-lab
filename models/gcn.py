@@ -4,8 +4,10 @@ from cogdl.data import Graph
 from cogdl.layers import GCNLayer
 from cogdl.models import BaseModel
 
+from models.model import Model
 
-class GCN(BaseModel):
+
+class GCN(Model):
     """GCN Model implemented based on Cogdl library"""
     def __init__(self, in_feats: int, out_feats: int, hidden_size: int,
                  num_layers: int, dropout: float):

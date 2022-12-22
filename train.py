@@ -3,26 +3,32 @@ import gc
 import torch
 import torch.nn.functional as func
 from torch import Tensor
-from cogdl.data import Graph
+# from cogdl.data import Graph
 
 import data_processing
-import models
 import options
+from data_processing import DynamicGraph
+from models import GCN, TGAT
 from logger import Logger
 from evaluator import Evaluator
-
 
 # Experiment setup
 args = options.prepare_args()
 device = torch.device(args.device)
 
 # Prepare data
-dataset: Graph = data_processing.DGraphDataset()[0]
-dataset = dataset.to(device)
-data_processing.data_preprocess(dataset)
+is_tgat = args.model == "tgat"
+dataset: DynamicGraph = data_processing.DGraphDataset(to_undirected=not is_tgat)[0]
 
-model = models.GCN(in_feats=dataset.num_features, hidden_size=args.hidden_size,
-                   out_feats=args.num_classes, dropout=args.dropout, num_layers=args.num_layers)
+if is_tgat:
+    dataset = data_processing.process_tgat_data(dataset)
+    model = TGAT(in_channels=17, out_channels=2)
+else:
+    data_processing.data_preprocess(dataset)
+    model = GCN(in_feats=dataset.num_features, hidden_size=args.hidden_size,
+                out_feats=args.num_classes, dropout=args.dropout, num_layers=args.num_layers)
+
+dataset = dataset.to(device)
 model.to(device)
 weight = torch.tensor([1, args.loss_weight]).to(device).float()
 evaluator = Evaluator(args.metrics, num_classes=args.num_classes)

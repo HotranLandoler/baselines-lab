@@ -22,5 +22,13 @@ def __parse_configs(args: Namespace):
     """Parse the toml config file and add to args"""
     with open(CONFIG_PATH, "rb") as file:
         configs = tomli.load(file)
-    for key, value in configs.items():
+    model_configs: dict = configs.pop('models')
+    # Add model specific args
+    __add_dict_to_args(model_configs[configs['model']], args)
+    # Add rest of the args
+    __add_dict_to_args(configs, args)
+
+
+def __add_dict_to_args(source: dict, args: Namespace):
+    for key, value in source.items():
         args.__dict__[key] = value
