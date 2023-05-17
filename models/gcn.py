@@ -1,48 +1,53 @@
+from typing import Union
+
 import torch.nn
+import torch.nn.functional as f
 from torch import Tensor
-from cogdl.data import Graph
-from cogdl.layers import GCNLayer
-from cogdl.models import BaseModel
-
-from models.model import Model
+from torch_geometric.nn.conv import GCNConv
+from torch_sparse import SparseTensor
 
 
-class GCN(Model):
-    """GCN Model implemented based on Cogdl library"""
-    def __init__(self, in_feats: int, out_feats: int, hidden_size: int,
-                 num_layers: int, dropout: float):
+class GCN(torch.nn.Module):
+    """
+    GCN Model from
+    https://github.com/DGraphXinye/DGraphFin_baseline/blob/master/models/gcn.py
+    """
+    def __init__(self, in_channels: int,
+                 hidden_channels: int,
+                 out_channels: int,
+                 num_layers: int,
+                 dropout: float,
+                 batchnorm=True):
         super().__init__()
-        shapes = [in_feats] + [hidden_size] * (num_layers - 1) + [out_feats]
-        self.num_layers = num_layers
-        self.layers = torch.nn.ModuleList(
-            [
-                GCNLayer(
-                    shapes[i],
-                    shapes[i + 1],
-                    dropout=dropout if i != num_layers - 1 else 0,
-                    activation="relu" if i != num_layers - 1 else None,
-                )
-                for i in range(num_layers)
-            ]
-        )
 
-    @classmethod
-    def build_model_from_args(cls, args):
-        return cls(
-            in_feats=args.num_features,
-            hidden_size=args.hidden_size,
-            out_feats=args.num_classes,
-            num_layers=args.num_layers,
-            dropout=args.dropout
-        )
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(GCNConv(in_channels, hidden_channels, cached=True))
+        self.batchnorm = batchnorm
+        if self.batchnorm:
+            self.bns = torch.nn.ModuleList()
+            self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                GCNConv(hidden_channels, hidden_channels, cached=True))
+            if self.batchnorm:
+                self.bns.append(torch.nn.BatchNorm1d(hidden_channels))
+        self.convs.append(GCNConv(hidden_channels, out_channels, cached=True))
 
-    def forward(self, graph: Graph) -> Tensor:
-        graph.sym_norm()
-        h: Tensor = graph.x
-        for i in range(self.num_layers):
-            h = self.layers[i](graph, h)
-        return h.log_softmax(dim=-1)
+        self.dropout = dropout
 
     def reset_parameters(self):
-        for conv in self.layers:
+        for conv in self.convs:
             conv.reset_parameters()
+        if self.batchnorm:
+            for bn in self.bns:
+                bn.reset_parameters()
+
+    def forward(self, x, edge_index: Union[Tensor, SparseTensor]):
+        for i, conv in enumerate(self.convs[:-1]):
+            x = conv(x, edge_index)
+            if self.batchnorm:
+                x = self.bns[i](x)
+            x = f.relu(x)
+            x = f.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, edge_index)
+        return x.log_softmax(dim=-1)

@@ -24,11 +24,11 @@ def __parse_configs(args: Namespace):
         configs = tomli.load(file)
     model_configs: dict = configs.pop('models')
     # Add model specific args
-    __add_dict_to_args(model_configs[configs['model']], args)
+    _add_dict_to_args(model_configs[configs['model']], args)
     # Add rest of the args
-    __add_dict_to_args(configs, args)
+    _add_dict_to_args(configs, args)
 
 
-def __add_dict_to_args(source: dict, args: Namespace):
+def _add_dict_to_args(source: dict, args: Namespace):
     for key, value in source.items():
         args.__dict__[key] = value

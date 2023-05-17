@@ -1,114 +1,117 @@
 import os
+from typing import Optional, Callable
 
 import numpy as np
 import torch
-import cogdl.utils.graph_utils as cog_utils
 import pandas as pd
 from torch import Tensor
-from cogdl.data import Graph
-from cogdl.datasets import NodeDataset
+from torch_geometric.data import InMemoryDataset
+from torch_geometric.data import Data
 
-RAW_PATH = "data/DGraph/raw/dgraphfin.npz"
-PROCESSED_DIR = "data/DGraph/processed/"
-PROCESSED_NAME = "dgraph.pt"
+DATA_ROOT = "./data/"
+RAW_DIR = "raw"
+PROCESSED_DIR = "processed"
 
 
-class DGraphDataset(NodeDataset):
-    # @property
-    # def raw_file_names(self):
-    #     pass
-    #
-    # @property
-    # def processed_file_names(self):
-    #     pass
+class DGraphDataset(InMemoryDataset):
+    """DGraphFin Dataset"""
+    def __init__(self, root=DATA_ROOT, transform: Optional[Callable] = None,
+                 pre_transform: Optional[Callable] = None,
+                 pre_filter: Optional[Callable] = None):
+        self.name = "DGraph"
+        super().__init__(root, transform, pre_transform, pre_filter)
+        self.data, self.slices = torch.load(self.processed_paths[0])
 
-    def __init__(self, path=PROCESSED_DIR + PROCESSED_NAME, to_undirected=True):
-        # Make processed dir
-        if not os.path.exists(PROCESSED_DIR):
-            os.mkdir(PROCESSED_DIR)
-        self.path = path
-        self.to_undirected = to_undirected
-        super(DGraphDataset, self).__init__(path, scale_feat=False, metric="accuracy")
+    @property
+    def raw_dir(self) -> str:
+        return os.path.join(self.root, self.name, RAW_DIR)
+
+    @property
+    def processed_dir(self) -> str:
+        return os.path.join(self.root, self.name, PROCESSED_DIR)
+
+    @property
+    def raw_file_names(self) -> list[str]:
+        return ['dgraphfin.npz']
+
+    @property
+    def processed_file_names(self) -> list[str]:
+        return ['data.pt']
 
     def process(self):
-        """
-        Load DGraph dataset and transform to `Graph`,
-        runs only when no processed file is found.
-        """
-        print("Processing Data...")
-        data_file = np.load(RAW_PATH)
+        # Read data into huge `Data` list.
+        data_list = [self._read_dgraphfin()]
 
-        edge_index = torch.from_numpy(data_file['edge_index']).transpose(0, 1)
-        if self.to_undirected:
-            # To undirected
-            edge_index = cog_utils.to_undirected(edge_index)
-        x = torch.from_numpy(data_file['x']).float()
-        y = torch.from_numpy(data_file['y'])
+        if self.pre_filter is not None:
+            data_list = [data for data in data_list if self.pre_filter(data)]
 
-        # set train/val/test mask in node_classification task
-        train_mask = torch.zeros(x.shape[0]).bool()
-        train_mask[data_file['train_mask']] = True
+        if self.pre_transform is not None:
+            data_list = [self.pre_transform(data) for data in data_list]
 
-        val_mask = torch.zeros(x.shape[0]).bool()
-        val_mask[data_file['valid_mask']] = True
+        data, slices = self.collate(data_list)
+        torch.save((data, slices), self.processed_paths[0])
 
-        test_mask = torch.zeros(x.shape[0]).bool()
-        test_mask[data_file['test_mask']] = True
+    def _read_dgraphfin(self) -> Data:
+        print('Reading DGraph...')
+        raw_name = self.raw_file_names[0]
+        item: dict = np.load(os.path.join(self.raw_dir, raw_name))
 
-        edge_time = torch.tensor(data_file['edge_timestamp']).long()
+        x = item['x']
+        y = item['y'].reshape(-1, 1)
+        edge_index = item['edge_index']
+        edge_type = item['edge_type']
+        train_mask = item['train_mask']
+        valid_mask = item['valid_mask']
+        test_mask = item['test_mask']
+        edge_time = item['edge_timestamp']
 
-        # Cogdl Graph does not support adding custom attribute starting with 'edge_'
-        data = DynamicGraph(x=x, edge_index=edge_index, y=y, train_mask=train_mask,
-                            val_mask=val_mask, test_mask=test_mask, edge_time=edge_time)
-        # data.edge_time = edge_time
+        x = torch.tensor(x, dtype=torch.float).contiguous()
+        y = torch.tensor(y, dtype=torch.int64)
+        edge_index = torch.tensor(edge_index.transpose(), dtype=torch.int64).contiguous()
+        edge_type = torch.tensor(edge_type, dtype=torch.float)
+        train_mask = torch.tensor(train_mask, dtype=torch.int64)
+        valid_mask = torch.tensor(valid_mask, dtype=torch.int64)
+        test_mask = torch.tensor(test_mask, dtype=torch.int64)
+        edge_time = torch.tensor(edge_time, dtype=torch.int64)
+
+        data = Data(x=x, edge_index=edge_index, edge_attr=edge_type, y=y)
+        data.train_mask = train_mask
+        data.valid_mask = valid_mask
+        data.test_mask = test_mask
+        data.edge_time = edge_time
+
         return data
 
 
-class DynamicGraph(Graph):
-    def __init__(self, x: Tensor, y: Tensor, edge_time: Tensor, **kwargs):
-        super().__init__(x, y, **kwargs)
-        self.edge_time = edge_time
-
-    def to(self, device, *keys):
-        self.edge_time = self.edge_time.to(device)
-        return super().to(device, *keys)
-
-    def __setattr__(self, key, value):
-        if key == 'edge_time':
-            self.__dict__[key] = value
-        else:
-            super().__setattr__(key, value)
-
-    def __getitem__(self, key):
-        if key == 'edge_time':
-            return getattr(self, key)
-        return super().__getitem__(key)
-
-
-def data_preprocess(dataset: DynamicGraph):
+def data_preprocess(data: Data):
     """Perform pre-processing on dataset before training"""
+    # To undirected
+    data.adj_t = data.adj_t.to_symmetric()
     # Normalization
-    x = dataset.x
+    x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)
-    dataset.x = x
+    data.x = x
+    # Reshape y
+    if data.y.dim() == 2:
+        data.y = data.y.squeeze(1)
 
 
-def __build_tg_data():
-    """Data for TGAT"""
-    origin_data = np.load(RAW_PATH)
-    data = Graph()
-    data.x = torch.tensor(origin_data['x']).float()
-    data.y = torch.tensor(origin_data['y']).long()
-    data.edge_index = torch.tensor(origin_data['edge_index']).long().T
-    data.train_mask = torch.tensor(origin_data['train_mask']).long()
-    data.val_mask = torch.tensor(origin_data['valid_mask']).long()
-    data.test_mask = torch.tensor(origin_data['test_mask']).long()
-    data.edge_time = torch.tensor(origin_data['edge_timestamp']).long()
-    data.edge_index = cog_utils.to_undirected(data.edge_index)
-    return data
+# def __build_tg_data():
+#     """Data for TGAT"""
+#     origin_data = np.load(RAW_PATH)
+#     data = Graph()
+#     data.x = torch.tensor(origin_data['x']).float()
+#     data.y = torch.tensor(origin_data['y']).long()
+#     data.edge_index = torch.tensor(origin_data['edge_index']).long().T
+#     data.train_mask = torch.tensor(origin_data['train_mask']).long()
+#     data.val_mask = torch.tensor(origin_data['valid_mask']).long()
+#     data.test_mask = torch.tensor(origin_data['test_mask']).long()
+#     data.edge_time = torch.tensor(origin_data['edge_timestamp']).long()
+#     data.edge_index = cog_utils.to_undirected(data.edge_index)
+#     return data
 
 
-def process_tgat_data(data: DynamicGraph, max_time_steps=32):
+def process_tgat_data(data: Data, max_time_steps=32):
     """https://github.com/hxttkl/DGraph_Experiments"""
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
     data.edge_time = data.edge_time / data.edge_time.max()
