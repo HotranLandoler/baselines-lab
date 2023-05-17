@@ -38,7 +38,6 @@ model.to(device)
 weight = torch.tensor([1, args.loss_weight]).to(device).float()
 evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
 logger = Logger(settings=args)
-early_stopping = EarlyStopping(verbose=True)
 
 print(f"Train started with setting {args}")
 for run in range(args.runs):
@@ -47,6 +46,7 @@ for run in range(args.runs):
 
     model.reset_parameters()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    early_stopping = EarlyStopping(verbose=True)
 
     for epoch in range(args.epochs):
         # Train
@@ -65,6 +65,9 @@ for run in range(args.runs):
         val_loss = func.nll_loss(predicts[data.valid_mask], data.y[data.valid_mask],
                                  weight=weight)
         print(f"Epoch {epoch} finished. train_loss: {loss.item():>7f} val_loss: {val_loss.item():>7f}")
+        if early_stopping.check_stop(val_loss.item()):
+            print("Early Stopping")
+            break
 
     # Test
     model.eval()

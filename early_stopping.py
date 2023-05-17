@@ -18,7 +18,10 @@ class EarlyStopping:
         self.val_loss_min: float = np.inf
 
     def check_stop(self, val_loss: float) -> bool:
-        """"""
+        """Check if it's time for early stopping
+        Returns:
+            True - Need to stop training
+        """
         if val_loss >= self.val_loss_min:
             self.counter += 1
             if self.verbose:

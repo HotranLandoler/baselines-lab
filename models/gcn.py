@@ -17,12 +17,12 @@ class GCN(torch.nn.Module):
                  out_channels: int,
                  num_layers: int,
                  dropout: float,
-                 batchnorm=True):
+                 batch_norm=False):
         super().__init__()
 
         self.convs = torch.nn.ModuleList()
         self.convs.append(GCNConv(in_channels, hidden_channels, cached=True))
-        self.batchnorm = batchnorm
+        self.batchnorm = batch_norm
         if self.batchnorm:
             self.bns = torch.nn.ModuleList()
             self.bns.append(torch.nn.BatchNorm1d(hidden_channels))

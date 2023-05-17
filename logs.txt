@@ -41,3 +41,10 @@ Settings: Namespace(epochs=1, runs=3, loss_weight=50, save_log=True, num_classes
 AUC: [0.5768932700157166, 0.6348071694374084, 0.662055253982544]
 AP: [0.5025926232337952, 0.5050418972969055, 0.506504476070404]
 Final AUC: 0.6246 ± 0.0435, Final AP: 0.5047 ± 0.0020, 
+
+-------PyG+EarlyStopping----------
+[2023-05-17 17:37:51]
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, weight_decay=5e-07, model='gcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, lr=0.01, metrics=['AUC', 'AP'], log_path='./logs.txt')
+AUC: [0.7542968988418579, 0.755689263343811, 0.7539315223693848]
+AP: [0.515917956829071, 0.515868604183197, 0.5158727765083313]
+Final AUC: 0.7546 ± 0.0009, Final AP: 0.5159 ± 0.0000, 
