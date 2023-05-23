@@ -2,12 +2,10 @@ import torch
 import torch.nn.functional as func
 import torch_geometric.transforms as transforms
 from torch_geometric.data import Data
-from torch import Tensor
-# from cogdl.data import Graph
 
 import data_processing
 import options
-from models import GCN
+from models import GCN, DropGCN
 # from models import TGAT
 from logger import Logger
 from evaluator import Evaluator
@@ -28,9 +26,11 @@ if is_tgat:
     model = TGAT(in_channels=17, out_channels=2)
 else:
     data_processing.data_preprocess(data)
-    model = GCN(in_channels=data.num_features, hidden_channels=args.hidden_size,
-                out_channels=args.num_classes, dropout=args.dropout,
-                num_layers=args.num_layers)
+    # model = GCN(in_channels=data.num_features, hidden_channels=args.hidden_size,
+    #             out_channels=args.num_classes, dropout=args.dropout,
+    #             num_layers=args.num_layers)
+    model = DropGCN(feature_num=data.num_features,
+                    output_num=args.num_classes)
 
 print(model)
 data = data.to(args.device)
@@ -46,13 +46,13 @@ for run in range(args.runs):
 
     model.reset_parameters()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    early_stopping = EarlyStopping(verbose=True)
+    early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
     for epoch in range(args.epochs):
         # Train
         model.train()
         optimizer.zero_grad()
-        output = model(data.x, data.adj_t)
+        output = model(data.x, data.adj_t, drop_rate=args.drop_rate)
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                              weight=weight)
         loss.backward()
@@ -65,7 +65,8 @@ for run in range(args.runs):
         val_loss = func.nll_loss(predicts[data.valid_mask], data.y[data.valid_mask],
                                  weight=weight)
         print(f"Epoch {epoch} finished. train_loss: {loss.item():>7f} val_loss: {val_loss.item():>7f}")
-        if early_stopping.check_stop(val_loss.item()):
+        if (args.use_early_stopping and
+                early_stopping.check_stop(val_loss.item())):
             print("Early Stopping")
             break
 

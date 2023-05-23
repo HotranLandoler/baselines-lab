@@ -1,5 +1,5 @@
 # Basic configs
-model = "gcn"
+model = "dropgcn"
 device = "cpu"
 num_classes = 2
 hidden_size = 64
@@ -9,11 +9,19 @@ dropout = 0.0
 lr = 0.01 # Learning rate
 metrics = ["AUC", "AP"]
 
+use_early_stopping = false
+early_stopping_patience = 10
+
 log_path = "./logs.txt"
 
 [models.gcn]
 # GCN
 weight_decay = 5e-7
+
+[models.dropgcn]
+# GCN with DropMessage
+weight_decay = 0e-4
+drop_rate = 0.25
 
 [models.tgat]
 # TGAT
