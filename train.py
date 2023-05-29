@@ -5,7 +5,7 @@ from torch_geometric.data import Data
 
 import data_processing
 import options
-from models import GCN, DropGCN
+from models import GCN, DropGCN, MlpDropGCN
 # from models import TGAT
 from logger import Logger
 from evaluator import Evaluator
@@ -26,11 +26,16 @@ if is_tgat:
     model = TGAT(in_channels=17, out_channels=2)
 else:
     data_processing.data_preprocess(data)
+
     # model = GCN(in_channels=data.num_features, hidden_channels=args.hidden_size,
     #             out_channels=args.num_classes, dropout=args.dropout,
     #             num_layers=args.num_layers)
-    model = DropGCN(feature_num=data.num_features,
-                    output_num=args.num_classes)
+
+    # model = DropGCN(feature_num=data.num_features,
+    #                 output_num=args.num_classes)
+
+    model = MlpDropGCN(feature_num=data.num_features,
+                       output_num=args.num_classes)
 
 print(model)
 data = data.to(args.device)

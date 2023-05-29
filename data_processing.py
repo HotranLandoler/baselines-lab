@@ -84,7 +84,12 @@ class DGraphDataset(InMemoryDataset):
 
 
 def data_preprocess(data: Data):
-    """Perform pre-processing on dataset before training"""
+    """Perform pre-processing on dataset before training.
+
+    - To Undirected Graph
+    - Normalize features(x)
+    - Reshape y
+    """
     # To undirected
     data.adj_t = data.adj_t.to_symmetric()
     # Normalization

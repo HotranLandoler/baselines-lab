@@ -3,9 +3,8 @@ import math
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from torch.nn import Parameter
+from torch.nn import Parameter, Sequential
 from torch_sparse import SparseTensor
-from torch_geometric.nn.models import MLP
 from torch_geometric.typing import Adj
 from torch_geometric.nn.conv import MessagePassing
 

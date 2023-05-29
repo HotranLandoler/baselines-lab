@@ -1,5 +1,5 @@
 # Basic configs
-model = "dropgcn"
+model = "mlpdropgcn"
 device = "cpu"
 num_classes = 2
 hidden_size = 64
@@ -22,6 +22,11 @@ weight_decay = 5e-7
 # GCN with DropMessage
 weight_decay = 0e-4
 drop_rate = 0.25
+
+[models.mlpdropgcn]
+# GCN with DropMessage, DropRate from MLP
+weight_decay = 0e-4
+drop_rate = 0.0
 
 [models.tgat]
 # TGAT
