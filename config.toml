@@ -1,5 +1,5 @@
 # Basic configs
-model = "mlpdropgcn"
+model = "gcn"
 device = "cpu"
 num_classes = 2
 hidden_size = 64

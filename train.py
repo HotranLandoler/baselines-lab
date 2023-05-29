@@ -5,6 +5,7 @@ from torch_geometric.data import Data
 
 import data_processing
 import options
+import utils
 from models import GCN, DropGCN, MlpDropGCN
 # from models import TGAT
 from logger import Logger
@@ -13,34 +14,12 @@ from early_stopping import EarlyStopping
 
 # Experiment setup
 args = options.prepare_args()
-device = torch.device(args.device)
 
-# Prepare data
-is_tgat = args.model == "tgat"
-dataset_transform = transforms.Compose([transforms.ToSparseTensor()])
-dataset = data_processing.DGraphDataset(transform=dataset_transform)
-data: Data = dataset[0]
-
-if is_tgat:
-    dataset = data_processing.process_tgat_data(dataset)
-    model = TGAT(in_channels=17, out_channels=2)
-else:
-    data_processing.data_preprocess(data)
-
-    # model = GCN(in_channels=data.num_features, hidden_channels=args.hidden_size,
-    #             out_channels=args.num_classes, dropout=args.dropout,
-    #             num_layers=args.num_layers)
-
-    # model = DropGCN(feature_num=data.num_features,
-    #                 output_num=args.num_classes)
-
-    model = MlpDropGCN(feature_num=data.num_features,
-                       output_num=args.num_classes)
+# Prepare data and model
+data, model = utils.prepare_data_and_model(args)
 
 print(model)
-data = data.to(args.device)
-model.to(device)
-weight = torch.tensor([1, args.loss_weight]).to(device).float()
+weight = torch.tensor([1, args.loss_weight], dtype=torch.float32, device=args.device)
 evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
 logger = Logger(settings=args)
 
@@ -57,7 +36,12 @@ for run in range(args.runs):
         # Train
         model.train()
         optimizer.zero_grad()
-        output = model(data.x, data.adj_t, drop_rate=args.drop_rate)
+
+        if args.model == "dropgcn":
+            output = model(data.x, data.adj_t, drop_rate=args.drop_rate)
+        else:
+            output = model(data.x, data.adj_t)
+
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                              weight=weight)
         loss.backward()
