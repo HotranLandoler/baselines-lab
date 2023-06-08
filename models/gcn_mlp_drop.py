@@ -2,17 +2,18 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 from torch.nn import Sequential, Linear, Sigmoid
+from torch_geometric.nn import EdgeConv
 
 from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
 
 class MlpDropGCN(DropGCN):
     """Perform *DropMessage* on GCN with **rate** predicted from an MLP model"""
-    def __init__(self, feature_num: int, output_num: int):
+    def __init__(self, feature_num: int, hidden_num: int, output_num: int):
         super().__init__(feature_num=feature_num,
                          output_num=output_num)
-        self.gnn1 = AdaptiveGNNLayer(feature_num, 64)
-        self.gnn2 = AdaptiveGNNLayer(64, output_num)
+        self.gnn1 = AdaptiveGNNLayer(feature_num, hidden_num)
+        self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
 
 
 class AdaptiveGNNLayer(GNNLayer):
@@ -38,7 +39,7 @@ class AdaptiveBbGCN(BbGCN):
         self.mlp = Sequential(Linear(3 * hidden_channels, 1),
                               Sigmoid())
 
-    def message(self, x_i: Tensor, x_j: Tensor, drop_rate: float):
+    def message(self, x_i: Tensor, x_j: Tensor):
         if not self.training:
             return x_j
 
@@ -47,14 +48,19 @@ class AdaptiveBbGCN(BbGCN):
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
         drop_rate_mlp = self.mlp(x_cat)
-        # print(f"MLP output: {drop_rate_mlp}")
-        print("Dropping...")
+        # print(f"MLP output: {drop_rate_mlp[:3]}")
+        # print("Dropping...")
 
         # drop messages
-        for i, message in enumerate(x_j):
-            F.dropout(x_j[i], p=drop_rate_mlp[i].item())
+        x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
 
-        # print(f"After drop: {x_j}")
-        print("Dropped.")
+        # print(f"After drop: {x_j[:5]}")
+        # print("Dropped.")
 
         return x_j
+
+
+def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
+    assert x.shape[0] == probability.shape[0]
+    mask: Tensor = torch.rand_like(x) > probability
+    return mask * x / (1.0 - probability)

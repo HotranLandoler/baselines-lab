@@ -1,5 +1,7 @@
+import random
 from argparse import Namespace
 
+import numpy as np
 import torch
 import torch_geometric.transforms as transforms
 from torch.nn import Module
@@ -24,12 +26,23 @@ def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
         Tuple(Processed data, model).
 
     Raises:
+        ValueError: `args.device` not available.
         NotImplementedError: The model in args is not implemented.
     """
+    if "cuda" in args.device and not torch.cuda.is_available():
+        raise ValueError("Device CUDA not available")
+
     data = _prepare_data()
     model = _prepare_model(args, data)
     _process_data(args, data)
     return data.to(args.device), model.to(args.device)
+
+
+def set_random_seed(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 def _prepare_data() -> Data:
@@ -49,6 +62,7 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                             output_num=args.num_classes)
         case "mlpdropgcn":
             model = MlpDropGCN(feature_num=data.num_features,
+                               hidden_num=args.hidden_size,
                                output_num=args.num_classes)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")

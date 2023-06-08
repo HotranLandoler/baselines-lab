@@ -55,3 +55,17 @@ Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, weight_de
 AUC: [0.7158685922622681]
 AP: [0.5114158987998962]
 Final AUC: 0.7159 ± nan, Final AP: 0.5114 ± nan, 
+
+[2023-06-03 11:30:06]
+Model: MLPDROPGCN
+Settings: Namespace(epochs=300, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, model='mlpdropgcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7251288890838623]
+AP: [0.5121234059333801]
+Final AUC: 0.7251 ± nan, Final AP: 0.5121 ± nan, 
+
+[2023-06-03 13:02:09]
+Model: MLPDROPGCN
+Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, model='mlpdropgcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7275950312614441]
+AP: [0.5123640894889832]
+Final AUC: 0.7276 ± nan, Final AP: 0.5124 ± nan, 

@@ -1,10 +1,11 @@
 # Basic configs
-model = "gcn"
+model = "mlpdropgcn"
 device = "cpu"
 num_classes = 2
 hidden_size = 64
 num_layers = 2
 dropout = 0.0
+random_seed = 0
 
 lr = 0.01 # Learning rate
 metrics = ["AUC", "AP"]

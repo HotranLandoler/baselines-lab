@@ -2,14 +2,10 @@ import argparse
 
 import torch
 import torch.nn.functional as func
-import torch_geometric.transforms as transforms
 from torch_geometric.data import Data
 
-import data_processing
 import options
 import utils
-from models import GCN, DropGCN, MlpDropGCN
-# from models import TGAT
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
@@ -18,6 +14,7 @@ from early_stopping import EarlyStopping
 def main():
     # Experiment setup
     args = options.prepare_args()
+    utils.set_random_seed(args.random_seed)
 
     # Prepare data and model
     data, model = utils.prepare_data_and_model(args)
