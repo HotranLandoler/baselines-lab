@@ -19,7 +19,7 @@ def main():
     # Prepare data and model
     data, model = utils.prepare_data_and_model(args)
 
-    weight = torch.tensor([1, args.loss_weight], dtype=torch.float32, device=args.device)
+    weight = utils.get_loss_weight(args)
     evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
     logger = Logger(settings=args)
 
@@ -76,7 +76,7 @@ def _train_epoch(model: torch.nn.Module,
                  data: Data,
                  optimizer: torch.optim.Optimizer,
                  args: argparse.Namespace,
-                 loss_weight: torch.Tensor) -> float:
+                 loss_weight: torch.Tensor | None) -> float:
     model.train()
     optimizer.zero_grad()
 
@@ -95,10 +95,10 @@ def _train_epoch(model: torch.nn.Module,
 
 def _validate_epoch(model: torch.nn.Module,
                     data: Data,
-                    loss_weight: torch.Tensor) -> float:
+                    loss_weight: torch.Tensor | None) -> float:
     model.eval()
     predicts = model(data.x, data.adj_t)
-    val_loss = func.nll_loss(predicts[data.valid_mask], data.y[data.valid_mask],
+    val_loss = func.nll_loss(predicts[data.val_mask], data.y[data.val_mask],
                              weight=loss_weight)
     return val_loss.item()
 

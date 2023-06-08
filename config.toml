@@ -1,13 +1,16 @@
 # Basic configs
 model = "mlpdropgcn"
+dataset = "Cora"
 device = "cpu"
-num_classes = 2
+
 hidden_size = 64
 num_layers = 2
 dropout = 0.0
 random_seed = 0
 
-lr = 0.01 # Learning rate
+# Learning rate
+lr = 0.01
+
 metrics = ["AUC", "AP"]
 
 use_early_stopping = false
@@ -15,6 +18,14 @@ early_stopping_patience = 10
 
 log_path = "./logs.txt"
 
+# Dataset configs
+[datasets.DGraph]
+num_classes = 2
+
+[datasets.Cora]
+num_classes = 7
+
+# Model configs
 [models.gcn]
 # GCN
 weight_decay = 5e-7

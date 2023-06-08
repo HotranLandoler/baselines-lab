@@ -48,7 +48,7 @@ class AdaptiveBbGCN(BbGCN):
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
         drop_rate_mlp = self.mlp(x_cat)
-        # print(f"MLP output: {drop_rate_mlp[:3]}")
+        print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 
         # drop messages

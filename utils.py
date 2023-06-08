@@ -4,6 +4,7 @@ from argparse import Namespace
 import numpy as np
 import torch
 import torch_geometric.transforms as transforms
+from torch import Tensor
 from torch.nn import Module
 from torch_geometric.data import Data
 
@@ -32,10 +33,20 @@ def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
     if "cuda" in args.device and not torch.cuda.is_available():
         raise ValueError("Device CUDA not available")
 
-    data = _prepare_data()
+    data = _prepare_data(args.dataset)
     model = _prepare_model(args, data)
     _process_data(args, data)
     return data.to(args.device), model.to(args.device)
+
+
+def get_loss_weight(args: Namespace) -> Tensor | None:
+    match args.dataset:
+        case "DGraph":
+            return torch.tensor([1, args.loss_weight],
+                                dtype=torch.float32,
+                                device=args.device)
+        case _:
+            return None
 
 
 def set_random_seed(seed: int):
@@ -45,10 +56,17 @@ def set_random_seed(seed: int):
     torch.cuda.manual_seed_all(seed)
 
 
-def _prepare_data() -> Data:
+def _prepare_data(dataset: str) -> Data:
     dataset_transform = transforms.Compose([transforms.ToSparseTensor()])
-    dataset = data_processing.DGraphDataset(transform=dataset_transform)
-    return dataset[0]
+    match dataset:
+        case "DGraph":
+            data = data_processing.DGraphDataset(transform=dataset_transform)[0]
+        case "Cora":
+            data = data_processing.get_cora(transform=dataset_transform)
+        case _:
+            raise NotImplementedError(f"Dataset {dataset} not implemented")
+
+    return data
 
 
 def _prepare_model(args: Namespace, data: Data) -> Module:
@@ -72,6 +90,9 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
 
 
 def _process_data(args: Namespace, data: Data):
+    if args.dataset != "DGraph":
+        return
+
     match args.model:
         case "tgat":
             data_processing.process_tgat_data(data)

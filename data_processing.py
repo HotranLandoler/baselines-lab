@@ -4,9 +4,12 @@ from typing import Optional, Callable
 import numpy as np
 import torch
 import pandas as pd
+import torch_geometric.transforms
 from torch import Tensor
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.data import Data
+from torch_geometric.datasets import Planetoid
+from torch_geometric.transforms import BaseTransform
 
 DATA_ROOT = "./data/"
 RAW_DIR = "raw"
@@ -61,7 +64,7 @@ class DGraphDataset(InMemoryDataset):
         edge_index = item['edge_index']
         edge_type = item['edge_type']
         train_mask = item['train_mask']
-        valid_mask = item['valid_mask']
+        val_mask = item['valid_mask']
         test_mask = item['test_mask']
         edge_time = item['edge_timestamp']
 
@@ -70,17 +73,25 @@ class DGraphDataset(InMemoryDataset):
         edge_index = torch.tensor(edge_index.transpose(), dtype=torch.int64).contiguous()
         edge_type = torch.tensor(edge_type, dtype=torch.float)
         train_mask = torch.tensor(train_mask, dtype=torch.int64)
-        valid_mask = torch.tensor(valid_mask, dtype=torch.int64)
+        val_mask = torch.tensor(val_mask, dtype=torch.int64)
         test_mask = torch.tensor(test_mask, dtype=torch.int64)
         edge_time = torch.tensor(edge_time, dtype=torch.int64)
 
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_type, y=y)
         data.train_mask = train_mask
-        data.valid_mask = valid_mask
+        data.val_mask = val_mask
         data.test_mask = test_mask
         data.edge_time = edge_time
 
         return data
+
+
+def get_cora(transform: BaseTransform) -> Data:
+    """Get the Cora dataset."""
+    dataset = Planetoid(root=DATA_ROOT,
+                        name="Cora",
+                        transform=transform)
+    return dataset[0]
 
 
 def data_preprocess(data: Data):
