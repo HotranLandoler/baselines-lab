@@ -1,6 +1,6 @@
 # Basic configs
 model = "mlpdropgcn"
-dataset = "Cora"
+dataset = "DGraph"
 device = "cpu"
 
 hidden_size = 64

@@ -2,6 +2,7 @@ import argparse
 
 import torch
 import torch.nn.functional as func
+from torch import autograd
 from torch_geometric.data import Data
 
 import options
@@ -80,6 +81,7 @@ def _train_epoch(model: torch.nn.Module,
     model.train()
     optimizer.zero_grad()
 
+    # with autograd.detect_anomaly():
     if args.model == "dropgcn":
         output = model(data.x, data.adj_t, drop_rate=args.drop_rate)
     else:
@@ -88,6 +90,7 @@ def _train_epoch(model: torch.nn.Module,
     loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                          weight=loss_weight)
     loss.backward()
+
     optimizer.step()
     # print(f"Epoch {epoch} finished. loss: {loss.item():>7f}")
     return loss.item()

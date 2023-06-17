@@ -63,4 +63,4 @@ class AdaptiveBbGCN(BbGCN):
 def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
     assert x.shape[0] == probability.shape[0]
     mask: Tensor = torch.rand_like(x) > probability
-    return mask * x / (1.0 - probability)
+    return mask * x  # / (1.0 - probability)
