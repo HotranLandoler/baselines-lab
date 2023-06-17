@@ -54,25 +54,12 @@ Model: DROPGCN
 Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.25, model='dropgcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
 AUC: [0.7158685922622681]
 AP: [0.5114158987998962]
-Final AUC: 0.7159 ± nan, Final AP: 0.5114 ± nan, 
-
-[2023-06-03 11:30:06]
-Model: MLPDROPGCN
-Settings: Namespace(epochs=300, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, model='mlpdropgcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
-AUC: [0.7251288890838623]
-AP: [0.5121234059333801]
-Final AUC: 0.7251 ± nan, Final AP: 0.5121 ± nan, 
-
-[2023-06-03 13:02:09]
-Model: MLPDROPGCN
-Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, model='mlpdropgcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
-AUC: [0.7275950312614441]
-AP: [0.5123640894889832]
-Final AUC: 0.7276 ± nan, Final AP: 0.5124 ± nan, 
+Final AUC: 0.7159 ± nan, Final AP: 0.5114 ± nan,
 
 [2023-06-17 12:26:24]
 Model: MLPDROPGCN
+Note: OOM issue fixed
 Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, num_classes=2, model='mlpdropgcn', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
 AUC: [0.713309645652771]
 AP: [0.5107382535934448]
-Final AUC: 0.7133 ± nan, Final AP: 0.5107 ± nan, 
+Final AUC: 0.7133 ± nan, Final AP: 0.5107 ± nan,
