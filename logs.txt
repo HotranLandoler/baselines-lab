@@ -44,6 +44,7 @@ Final AUC: 0.6246 ± 0.0435, Final AP: 0.5047 ± 0.0020,
 
 -------PyG+EarlyStopping----------
 [2023-05-17 17:37:51]
+Model: GCN
 Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, weight_decay=5e-07, model='gcn', device='cpu', num_classes=2, hidden_size=64, num_layers=2, dropout=0.0, lr=0.01, metrics=['AUC', 'AP'], log_path='./logs.txt')
 AUC: [0.7542968988418579, 0.755689263343811, 0.7539315223693848]
 AP: [0.515917956829071, 0.515868604183197, 0.5158727765083313]

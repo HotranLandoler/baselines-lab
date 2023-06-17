@@ -27,14 +27,20 @@ def main():
     print(model)
     print(f"Train started with setting {args}")
     for run in range(args.runs):
-        _train_run(run, model, data, args, evaluator, loss_weight=weight)
+        _train_run(run, model, data, args, evaluator, logger, loss_weight=weight)
 
     print("Train ended.")
     for result in evaluator.get_final_results():
         print(result, end="")
     print("")
+
     if args.save_log:
         logger.save_to_file(evaluator, path=args.log_path)
+
+    if args.plot:
+        if args.runs > 1:
+            raise NotImplementedError("Loss plot not implemented for multiple runs")
+        logger.plot_and_save(args.epochs)
 
 
 def _train_run(run: int,
@@ -42,6 +48,7 @@ def _train_run(run: int,
                data: Data,
                args: argparse.Namespace,
                evaluator: Evaluator,
+               logger: Logger,
                loss_weight: torch.Tensor):
     print(f"Run {run} " + "-" * 20)
     # gc.collect()
@@ -56,6 +63,7 @@ def _train_run(run: int,
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
               f"val_loss: {val_loss:>7f}")
+        logger.add_record(train_loss, val_loss)
 
         if (args.use_early_stopping and
                 early_stopping.check_stop(val_loss)):
