@@ -63,3 +63,12 @@ Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_de
 AUC: [0.713309645652771]
 AP: [0.5107382535934448]
 Final AUC: 0.7133 ± nan, Final AP: 0.5107 ± nan,
+
+[2023-06-17 15:20:28]
+Model: MLPDROPGCN
+Dataset: DGraph
+Note: Only drop message in layer 2
+Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_decay=0.0, drop_rate=0.0, num_classes=2, model='mlpdropgcn', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7281904220581055]
+AP: [0.5126883387565613]
+Final AUC: 0.7282 ± nan, Final AP: 0.5127 ± nan, 

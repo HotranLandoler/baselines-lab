@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 from torch.nn import Sequential, Linear, Sigmoid
-from torch_geometric.nn import EdgeConv
 
 from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
@@ -12,7 +11,7 @@ class MlpDropGCN(DropGCN):
     def __init__(self, feature_num: int, hidden_num: int, output_num: int):
         super().__init__(feature_num=feature_num,
                          output_num=output_num)
-        self.gnn1 = AdaptiveGNNLayer(feature_num, hidden_num)
+        self.gnn1 = GNNLayer(feature_num, hidden_num)
         self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
 
 
