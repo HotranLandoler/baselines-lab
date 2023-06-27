@@ -53,5 +53,5 @@ class Logger:
         ax.set_title(f"Losses of {self._model_name} on {self._dataset}, {num_epochs} epochs")
         ax.legend()
 
-        filename = f"{datetime.now():%Y-%m-%d-%H:%M:%S}.svg"
+        filename = f"{datetime.now():%Y-%m-%d-%H_%M_%S}.svg"
         fig.savefig(os.path.join(_PLOTS_PATH, filename))

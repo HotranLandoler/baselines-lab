@@ -1,7 +1,10 @@
 import torch
 import torch.nn.functional as F
+import torch_geometric.utils as pyg_utils
 from torch import Tensor
-from torch.nn import Sequential, Linear, Sigmoid
+from torch.nn import Sequential, Linear, Sigmoid, Parameter
+from torch_geometric.nn import MessagePassing, GCNConv
+from torch_geometric.typing import OptTensor
 
 from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
@@ -13,6 +16,42 @@ class MlpDropGCN(DropGCN):
                          output_num=output_num)
         self.gnn1 = GNNLayer(feature_num, hidden_num)
         self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
+
+
+class MlpDropGCNConv(GCNConv):
+    def __init__(self, in_channels, out_channels, hidden_channels=8):
+        super().__init__(in_channels, out_channels)
+        self.pre_transform_linear = Linear(in_channels, hidden_channels)
+        self.mlp_linear = Linear(3 * hidden_channels, 1)
+        self.mlp = Sequential(self.mlp_linear,
+                              Sigmoid())
+
+    # def reset_parameters(self):
+    #     super().reset_parameters()
+    #     self.pre_transform_linear.reset_parameters()
+    #     self.mlp_linear.reset_parameters()
+
+    def message(self, x_j: Tensor, edge_weight: OptTensor):
+        return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
+
+        # if not self.training:
+        #     return norm.view(-1, 1) * x_j
+
+        x_i_transformed = self.pre_transform_linear(x_i)
+        x_j_transformed = self.pre_transform_linear(x_j)
+        diff = x_i_transformed - x_j_transformed
+        x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
+        drop_rate_mlp = self.mlp(x_cat)
+        print(f"MLP output: {drop_rate_mlp[:3]}")
+        # print("Dropping...")
+
+        # drop messages
+        x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
+
+        # print(f"After drop: {x_j[:5]}")
+        # print("Dropped.")
+
+        return norm.view(-1, 1) * x_j
 
 
 class AdaptiveGNNLayer(GNNLayer):

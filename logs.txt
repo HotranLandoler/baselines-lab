@@ -73,3 +73,14 @@ Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, weight_de
 AUC: [0.7281904220581055]
 AP: [0.5126883387565613]
 Final AUC: 0.7282 ± nan, Final AP: 0.5127 ± nan, 
+
+-----------Fix DropGCN Bug-----------------
+
+[2023-06-27 20:04:39]
+Model: MLPDROPGCN
+Dataset: DGraph
+Note: Fix bug. MLP output: 0.5363 => 0.5346
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True, weight_decay=0.0, drop_rate=0.0, num_classes=2, model='mlpdropgcn', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7522099018096924]
+AP: [0.5158291459083557]
+Final AUC: 0.7522 ± nan, Final AP: 0.5158 ± nan, 

@@ -1,5 +1,5 @@
 # Basic configs
-model = "gcn"
+model = "mlpdropgcn"
 dataset = "DGraph"
 device = "cpu"
 
@@ -33,7 +33,7 @@ weight_decay = 5e-7
 [models.dropgcn]
 # GCN with DropMessage
 weight_decay = 0e-4
-drop_rate = 0.25
+drop_rate = 0.0
 
 [models.mlpdropgcn]
 # GCN with DropMessage, DropRate from MLP
