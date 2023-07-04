@@ -11,47 +11,12 @@ from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
 class MlpDropGCN(DropGCN):
     """Perform *DropMessage* on GCN with **rate** predicted from an MLP model"""
+
     def __init__(self, feature_num: int, hidden_num: int, output_num: int):
         super().__init__(feature_num=feature_num,
                          output_num=output_num)
         self.gnn1 = GNNLayer(feature_num, hidden_num)
         self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
-
-
-class MlpDropGCNConv(GCNConv):
-    def __init__(self, in_channels, out_channels, hidden_channels=8):
-        super().__init__(in_channels, out_channels)
-        self.pre_transform_linear = Linear(in_channels, hidden_channels)
-        self.mlp_linear = Linear(3 * hidden_channels, 1)
-        self.mlp = Sequential(self.mlp_linear,
-                              Sigmoid())
-
-    # def reset_parameters(self):
-    #     super().reset_parameters()
-    #     self.pre_transform_linear.reset_parameters()
-    #     self.mlp_linear.reset_parameters()
-
-    def message(self, x_j: Tensor, edge_weight: OptTensor):
-        return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
-
-        # if not self.training:
-        #     return norm.view(-1, 1) * x_j
-
-        x_i_transformed = self.pre_transform_linear(x_i)
-        x_j_transformed = self.pre_transform_linear(x_j)
-        diff = x_i_transformed - x_j_transformed
-        x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
-        drop_rate_mlp = self.mlp(x_cat)
-        print(f"MLP output: {drop_rate_mlp[:3]}")
-        # print("Dropping...")
-
-        # drop messages
-        x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
-
-        # print(f"After drop: {x_j[:5]}")
-        # print("Dropped.")
-
-        return norm.view(-1, 1) * x_j
 
 
 class AdaptiveGNNLayer(GNNLayer):
@@ -74,10 +39,13 @@ class AdaptiveBbGCN(BbGCN):
         """
         super().__init__()
         self.pre_transform_linear = Linear(in_channels, hidden_channels)
-        self.mlp = Sequential(Linear(3 * hidden_channels, 1),
-                              Sigmoid())
+        self.mlp = Linear(3 * hidden_channels, 1)
 
-    def message(self, x_i: Tensor, x_j: Tensor):
+    def message(self,
+                x_i: Tensor,
+                x_j: Tensor,
+                edge_index_target: Tensor,
+                dim_size: int):
         if not self.training:
             return x_j
 
@@ -85,7 +53,13 @@ class AdaptiveBbGCN(BbGCN):
         x_j_transformed = self.pre_transform_linear(x_j)
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
-        drop_rate_mlp = self.mlp(x_cat)
+        similarity_exp = torch.exp(self.mlp(x_cat))
+        neighbor_sum = (similarity_exp.new_zeros(dim_size, 1).
+                        scatter_add(dim=0,
+                                    index=edge_index_target.view(-1, similarity_exp.shape[1]),
+                                    src=similarity_exp))
+
+        drop_rate_mlp = similarity_exp / neighbor_sum[edge_index_target]
         print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 

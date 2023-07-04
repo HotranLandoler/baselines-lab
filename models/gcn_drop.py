@@ -76,10 +76,20 @@ class BbGCN(MessagePassing):
 
     def forward(self, x: Tensor, edge_index: Adj, drop_rate: float = 0):
         edge_index, self.edge_weight = self.pt.pretreatment(x, edge_index)
-        y = self.propagate(edge_index=edge_index, size=None, x=x, drop_rate=drop_rate)
+        dim_size = self._check_input(edge_index, None)[1]
+        y = self.propagate(edge_index=edge_index,
+                           size=None,
+                           x=x,
+                           drop_rate=drop_rate,
+                           edge_index_target=edge_index.storage.col(),
+                           dim_size=dim_size)
         return y
 
-    def message(self, x_j: Tensor, drop_rate: float):
+    def message(self,
+                x_j: Tensor,
+                drop_rate: float,
+                edge_index_target: Tensor,
+                dim_size: int):
         # normalize
         if self.edge_weight is not None:
             x_j = x_j * self.edge_weight.view(-1, 1)
