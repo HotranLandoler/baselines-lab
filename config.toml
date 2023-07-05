@@ -1,5 +1,5 @@
 # Basic configs
-model = "mlpdropgcn"
+model = "h2gcn"
 dataset = "DGraph"
 device = "cpu"
 
@@ -42,4 +42,8 @@ drop_rate = 0.0
 
 [models.tgat]
 # TGAT
+weight_decay = 0e-4
+
+[models.h2gcn]
+# H2GCN
 weight_decay = 0e-4

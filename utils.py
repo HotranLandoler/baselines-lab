@@ -9,7 +9,7 @@ from torch.nn import Module
 from torch_geometric.data import Data
 
 import data_processing
-from models import GCN, DropGCN, MlpDropGCN
+from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO
 
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
@@ -82,6 +82,14 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
             model = MlpDropGCN(feature_num=data.num_features,
                                hidden_num=args.hidden_size,
                                output_num=args.num_classes)
+        case "h2gcn":
+            # model = H2GCN(feat_dim=data.num_features,
+            #               hidden_dim=args.hidden_size,
+            #               class_dim=args.num_classes,
+            #               dropout=args.dropout)
+            model = H2GCN_EGO(in_channels=data.num_features, hidden_channels=args.hidden_size,
+                              out_channels=args.num_classes, dropout=args.dropout,
+                              num_layers=args.num_layers)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")
 
