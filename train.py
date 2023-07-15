@@ -26,8 +26,9 @@ def main():
 
     print(model)
     print(f"Train started with setting {args}")
+    total_epochs: int = args.epochs
     for run in range(args.runs):
-        _train_run(run, model, data, args, evaluator, logger, loss_weight=weight)
+        total_epochs = _train_run(run, model, data, args, evaluator, logger, loss_weight=weight)
 
     print("Train ended.")
     for result in evaluator.get_final_results():
@@ -40,7 +41,7 @@ def main():
     if args.plot:
         if args.runs > 1:
             raise NotImplementedError("Loss plot not implemented for multiple runs")
-        logger.plot_and_save(args.epochs)
+        logger.plot_and_save(total_epochs)
 
 
 def _train_run(run: int,
@@ -49,9 +50,10 @@ def _train_run(run: int,
                args: argparse.Namespace,
                evaluator: Evaluator,
                logger: Logger,
-               loss_weight: torch.Tensor):
+               loss_weight: torch.Tensor) -> int:
     print(f"Run {run} " + "-" * 20)
     # gc.collect()
+    total_epochs = args.epochs
 
     model.reset_parameters()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -68,6 +70,7 @@ def _train_run(run: int,
         if (args.use_early_stopping and
                 early_stopping.check_stop(val_loss)):
             print("Early Stopping")
+            total_epochs = epoch + 1
             break
 
     # Test
@@ -79,6 +82,8 @@ def _train_run(run: int,
     for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
         print(result, end='')
     print("")
+
+    return total_epochs
 
 
 def _train_epoch(model: torch.nn.Module,
