@@ -15,8 +15,8 @@ class MlpDropGCN(DropGCN):
     def __init__(self, feature_num: int, hidden_num: int, output_num: int):
         super().__init__(feature_num=feature_num,
                          output_num=output_num)
-        self.gnn1 = GNNLayer(feature_num, hidden_num)
-        self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
+        self.gnn1 = AdaptiveGNNLayer(feature_num, hidden_num)
+        self.gnn2 = GNNLayer(hidden_num, output_num)
 
 
 class AdaptiveGNNLayer(GNNLayer):
@@ -40,14 +40,15 @@ class AdaptiveBbGCN(BbGCN):
         super().__init__()
         self.pre_transform_linear = Linear(in_channels, hidden_channels)
         self.mlp = Linear(3 * hidden_channels, 1)
+        self.multi_dropout = MultiDropout()
 
     def message(self,
                 x_i: Tensor,
                 x_j: Tensor,
                 edge_index_target: Tensor,
                 dim_size: int):
-        if not self.training:
-            return x_j
+        # if not self.training:
+        #     return x_j
 
         x_i_transformed = self.pre_transform_linear(x_i)
         x_j_transformed = self.pre_transform_linear(x_j)
@@ -63,10 +64,13 @@ class AdaptiveBbGCN(BbGCN):
         print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 
-        # drop messages
-        x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
+        print(f"Before drop: {x_j[:3]}")
 
-        # print(f"After drop: {x_j[:5]}")
+        # drop messages
+        # x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
+        x_j = self.multi_dropout(x_j, p=drop_rate_mlp)
+
+        print(f"After drop: {x_j[:3]}")
         # print("Dropped.")
 
         return x_j
@@ -76,3 +80,21 @@ def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
     assert x.shape[0] == probability.shape[0]
     mask: Tensor = torch.rand_like(x) > probability
     return mask * x  # / (1.0 - probability)
+
+
+class MultiDropout(torch.nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mask: Tensor | None = None
+
+    def forward(self, x: Tensor, p: Tensor) -> Tensor:
+        if self.training:
+            assert x.shape[0] == p.shape[0]
+            self.mask = torch.rand_like(x) > p
+            return x * self.mask
+        else:
+            return x * (1.0 - p)
+
+    def backward(self, y: Tensor):
+        print("Backward")
+        return y * self.mask
