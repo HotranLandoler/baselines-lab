@@ -102,3 +102,12 @@ Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True
 AUC: [0.7895514369010925]
 AP: [0.5209512114524841]
 Final AUC: 0.7896 ± nan, Final AP: 0.5210 ± nan, 
+
+[2023-07-15 11:10:10]
+Model: MLP
+Dataset: DGraph
+Note: 
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True, weight_decay=0.0, num_classes=2, model='mlp', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7248595952987671]
+AP: [0.5111225843429565]
+Final AUC: 0.7249 ± nan, Final AP: 0.5111 ± nan, 

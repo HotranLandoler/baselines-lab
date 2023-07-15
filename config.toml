@@ -1,7 +1,7 @@
 # Basic configs
-model = "h2gcn"
+model = "mlp"
 dataset = "DGraph"
-device = "cuda:0"
+device = "cpu"
 
 hidden_size = 64
 num_layers = 2
@@ -46,4 +46,8 @@ weight_decay = 0e-4
 
 [models.h2gcn]
 # H2GCN
+weight_decay = 0e-4
+
+[models.mlp]
+# MLP
 weight_decay = 0e-4
