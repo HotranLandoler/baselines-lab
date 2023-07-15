@@ -23,7 +23,8 @@ class DGraphDataset(InMemoryDataset):
                  pre_filter: Optional[Callable] = None):
         self.name = "DGraph"
         super().__init__(root, transform, pre_transform, pre_filter)
-        self.data, self.slices = torch.load(self.processed_paths[0])
+        self.data, self.slices = torch.load(self.processed_paths[0],
+                                            map_location=torch.device('cpu'))
 
     @property
     def raw_dir(self) -> str:

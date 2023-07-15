@@ -123,10 +123,11 @@ class H2GCN_EGO(torch.nn.Module):
 
         self.convs = torch.nn.ModuleList()
         self.convs.append(GCNConv(in_channels, hidden_channels, cached=True,
-                                  add_self_loops=False))
+                                  add_self_loops=True))
         self.convs.append(GCNConv(hidden_channels, out_channels, cached=True,
-                                  add_self_loops=False))
-        self.linear = torch.nn.Linear(in_features=83, out_features=out_channels)
+                                  add_self_loops=True))
+        self.linear = torch.nn.Linear(in_features=in_channels + hidden_channels + out_channels,
+                                      out_features=out_channels)
 
         self.dropout = dropout
 

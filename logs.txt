@@ -95,7 +95,7 @@ AP: [0.5158254504203796]
 Final AUC: 0.7516 ± nan, Final AP: 0.5158 ± nan, 
 
 [2023-07-05 11:45:31]
-Model: H2GCN-EGO
+Model: H2GCN-D1D3
 Dataset: DGraph
 Note: H2GCN without D2
 Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True, weight_decay=0.0, num_classes=2, model='h2gcn', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=10, log_path='./logs.txt')
@@ -111,3 +111,12 @@ Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True
 AUC: [0.7248595952987671]
 AP: [0.5111225843429565]
 Final AUC: 0.7249 ± nan, Final AP: 0.5111 ± nan, 
+
+[2023-07-15 14:59:18]
+Model: H2GCN-D3
+Dataset: DGraph
+Note: H2GCN without D1 and D2
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True, weight_decay=0.0, num_classes=2, model='h2gcn', dataset='DGraph', device='cpu', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7600733041763306]
+AP: [0.5159504413604736]
+Final AUC: 0.7601 ± nan, Final AP: 0.5160 ± nan, 
