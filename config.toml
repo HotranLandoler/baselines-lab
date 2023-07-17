@@ -1,5 +1,5 @@
 # Basic configs
-model = "h2gcn"
+model = "mlpdropgcn"
 dataset = "DGraph"
 device = "cpu"
 

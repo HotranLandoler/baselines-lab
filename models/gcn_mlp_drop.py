@@ -4,7 +4,7 @@ import torch_geometric.utils as pyg_utils
 from torch import Tensor
 from torch.nn import Sequential, Linear, Sigmoid, Parameter
 from torch_geometric.nn import MessagePassing, GCNConv
-from torch_geometric.typing import OptTensor
+from torch_geometric.typing import OptTensor, Adj
 
 from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
@@ -15,8 +15,15 @@ class MlpDropGCN(DropGCN):
     def __init__(self, feature_num: int, hidden_num: int, output_num: int):
         super().__init__(feature_num=feature_num,
                          output_num=output_num)
-        self.gnn1 = AdaptiveGNNLayer(feature_num, hidden_num)
-        self.gnn2 = GNNLayer(hidden_num, output_num)
+        self.gnn1 = GNNLayer(feature_num, hidden_num)
+        # self.gnn2 = GNNLayer(hidden_num, output_num)
+        self.gnn2 = AdaptiveGNNLayer(hidden_num, output_num)
+
+    # def forward(self, x: Tensor, edge_index: Adj, drop_rate=0.0):
+    #     x = self.gnn1(x, edge_index, drop_rate)
+    #     # x = F.relu(x)
+    #     # x = self.gnn2(x)
+    #     return x.log_softmax(dim=-1)
 
 
 class AdaptiveGNNLayer(GNNLayer):
@@ -40,7 +47,7 @@ class AdaptiveBbGCN(BbGCN):
         super().__init__()
         self.pre_transform_linear = Linear(in_channels, hidden_channels)
         self.mlp = Linear(3 * hidden_channels, 1)
-        self.multi_dropout = MultiDropout()
+        # self.multi_dropout = MultiDropout()
 
     def message(self,
                 x_i: Tensor,
@@ -64,13 +71,13 @@ class AdaptiveBbGCN(BbGCN):
         print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 
-        print(f"Before drop: {x_j[:3]}")
+        # print(f"Before drop: {x_j[:3]}")
 
         # drop messages
-        # x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
-        x_j = self.multi_dropout(x_j, p=drop_rate_mlp)
+        x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
+        # x_j = self.multi_dropout(x_j, p=drop_rate_mlp)
 
-        print(f"After drop: {x_j[:3]}")
+        # print(f"After drop: {x_j[:3]}")
         # print("Dropped.")
 
         return x_j
@@ -82,19 +89,19 @@ def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
     return mask * x  # / (1.0 - probability)
 
 
-class MultiDropout(torch.nn.Module):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.mask: Tensor | None = None
-
-    def forward(self, x: Tensor, p: Tensor) -> Tensor:
-        if self.training:
-            assert x.shape[0] == p.shape[0]
-            self.mask = torch.rand_like(x) > p
-            return x * self.mask
-        else:
-            return x * (1.0 - p)
-
-    def backward(self, y: Tensor):
-        print("Backward")
-        return y * self.mask
+# class MultiDropout(torch.nn.Module):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.mask: Tensor | None = None
+#
+#     def forward(self, x: Tensor, p: Tensor) -> Tensor:
+#         if self.training:
+#             assert x.shape[0] == p.shape[0]
+#             self.mask = torch.rand_like(x) > p
+#             return x * self.mask
+#         else:
+#             return x * (1.0 - p)
+#
+#     def backward(self, y: Tensor):
+#         print("Backward")
+#         return y * self.mask
