@@ -120,3 +120,12 @@ Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=True
 AUC: [0.7600733041763306]
 AP: [0.5159504413604736]
 Final AUC: 0.7601 ± nan, Final AP: 0.5160 ± nan, 
+
+[2023-07-18 14:12:31]
+Model: MLPDROPGCN
+Dataset: DGraph
+Note: Drop Edge based on message Cosine Similarity
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, drop_rate=0.0, num_classes=2, model='mlpdropgcn', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7493728995323181]
+AP: [0.5152124166488647]
+Final AUC: 0.7494 ± nan, Final AP: 0.5152 ± nan,

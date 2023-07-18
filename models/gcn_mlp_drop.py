@@ -54,8 +54,13 @@ class AdaptiveBbGCN(BbGCN):
                 x_j: Tensor,
                 edge_index_target: Tensor,
                 dim_size: int):
-        # if not self.training:
-        #     return x_j
+        if not self.training:
+            return x_j
+
+        # cos_similarity = torch.cosine_similarity(x_i, x_j).view(-1, 1)
+        # # print(f"cos: {cos_similarity[:3]}")
+        # x_j = _drop_edge(x_j, cos_similarity)
+        # return x_j
 
         x_i_transformed = self.pre_transform_linear(x_i)
         x_j_transformed = self.pre_transform_linear(x_j)
@@ -71,16 +76,21 @@ class AdaptiveBbGCN(BbGCN):
         print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 
-        # print(f"Before drop: {x_j[:3]}")
+        print(f"Before drop: {x_j[:3]}")
 
         # drop messages
         x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
         # x_j = self.multi_dropout(x_j, p=drop_rate_mlp)
 
-        # print(f"After drop: {x_j[:3]}")
+        print(f"After drop: {x_j[:3]}")
         # print("Dropped.")
 
         return x_j
+
+
+def _drop_edge(message: Tensor, similarity: Tensor, threshold=0.25) -> Tensor:
+    mask: Tensor = similarity >= threshold
+    return mask * message
 
 
 def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:

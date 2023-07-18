@@ -1,7 +1,7 @@
 # Basic configs
 model = "mlpdropgcn"
 dataset = "DGraph"
-device = "cpu"
+device = "cuda:0"
 
 hidden_size = 64
 num_layers = 2
