@@ -2,8 +2,9 @@ import argparse
 
 import torch
 import torch.nn.functional as func
-from torch import autograd
+from torch import autograd, Tensor
 from torch_geometric.data import Data
+from torch_sparse import SparseTensor
 
 import options
 import utils
@@ -26,9 +27,14 @@ def main():
 
     print(model)
     print(f"Train started with setting {args}")
+
+    edge_index = data.adj_t if hasattr(data, "adj_t") else data.edge_index
+
     total_epochs: int = args.epochs
     for run in range(args.runs):
-        total_epochs = _train_run(run, model, data, args, evaluator, logger, loss_weight=weight)
+        total_epochs = _train_run(run, model, data, edge_index,
+                                  args, evaluator, logger,
+                                  loss_weight=weight)
 
     print("Train ended.")
     for result in evaluator.get_final_results():
@@ -47,6 +53,7 @@ def main():
 def _train_run(run: int,
                model: torch.nn.Module,
                data: Data,
+               edge_index: Tensor | SparseTensor,
                args: argparse.Namespace,
                evaluator: Evaluator,
                logger: Logger,
@@ -60,8 +67,10 @@ def _train_run(run: int,
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
     for epoch in range(args.epochs):
-        train_loss = _train_epoch(model, data, optimizer, args, loss_weight=loss_weight)
-        val_loss = _validate_epoch(model, data, loss_weight=loss_weight)
+        train_loss = _train_epoch(model, data, edge_index,
+                                  optimizer, args, loss_weight=loss_weight)
+        val_loss = _validate_epoch(model, data, edge_index,
+                                   loss_weight=loss_weight)
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
               f"val_loss: {val_loss:>7f}")
@@ -75,7 +84,7 @@ def _train_run(run: int,
 
     # Test
     model.eval()
-    predicts = model(data.x, data.adj_t)
+    predicts = model(data.x, edge_index, data=data)
     # result = metric(predicts[dataset.test_mask], dataset.y[dataset.test_mask], num_classes=OUT_FEATS)
     # logger.add_result(result.item())
     print(f"Run {run}: ", end='')
@@ -88,6 +97,7 @@ def _train_run(run: int,
 
 def _train_epoch(model: torch.nn.Module,
                  data: Data,
+                 edge_index: Tensor | SparseTensor,
                  optimizer: torch.optim.Optimizer,
                  args: argparse.Namespace,
                  loss_weight: torch.Tensor | None) -> float:
@@ -96,9 +106,9 @@ def _train_epoch(model: torch.nn.Module,
 
     # with autograd.detect_anomaly():
     if args.model == "dropgcn":
-        output = model(data.x, data.adj_t, drop_rate=args.drop_rate)
+        output = model(data.x, edge_index, drop_rate=args.drop_rate)
     else:
-        output = model(data.x, data.adj_t)
+        output = model(data.x, edge_index, data=data)
 
     loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                          weight=loss_weight)
@@ -111,9 +121,10 @@ def _train_epoch(model: torch.nn.Module,
 
 def _validate_epoch(model: torch.nn.Module,
                     data: Data,
+                    edge_index: Tensor | SparseTensor,
                     loss_weight: torch.Tensor | None) -> float:
     model.eval()
-    predicts = model(data.x, data.adj_t)
+    predicts = model(data.x, edge_index, data=data)
     val_loss = func.nll_loss(predicts[data.val_mask], data.y[data.val_mask],
                              weight=loss_weight)
     return val_loss.item()

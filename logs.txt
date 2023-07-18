@@ -129,3 +129,12 @@ Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=Fals
 AUC: [0.7493728995323181]
 AP: [0.5152124166488647]
 Final AUC: 0.7494 ± nan, Final AP: 0.5152 ± nan,
+
+[2023-07-18 15:46:05]
+Model: TGAT
+Dataset: DGraph
+Note: Original TGAT
+Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, plot=True, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7959771156311035]
+AP: [0.5207578539848328]
+Final AUC: 0.7960 ± nan, Final AP: 0.5208 ± nan,

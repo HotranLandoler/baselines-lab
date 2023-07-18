@@ -61,7 +61,8 @@ class DGraphDataset(InMemoryDataset):
         item: dict = np.load(os.path.join(self.raw_dir, raw_name))
 
         x = item['x']
-        y = item['y'].reshape(-1, 1)
+        # y = item['y'].reshape(-1, 1)
+        y = item['y']
         edge_index = item['edge_index']
         edge_type = item['edge_type']
         train_mask = item['train_mask']
@@ -95,7 +96,7 @@ def get_cora(transform: BaseTransform) -> Data:
     return dataset[0]
 
 
-def data_preprocess(data: Data):
+def data_preprocess(data: Data) -> Data:
     """Perform pre-processing on dataset before training.
 
     - To Undirected Graph
@@ -111,6 +112,8 @@ def data_preprocess(data: Data):
     # Reshape y
     if data.y.dim() == 2:
         data.y = data.y.squeeze(1)
+
+    return data
 
 
 # def __build_tg_data():
@@ -147,8 +150,7 @@ def process_tgat_data(data: Data, max_time_steps=32):
     data.node_time = torch.tensor(node_time)
 
     # trans to undirected graph
-    undirected_edge = torch.cat((edge_index_reshaped, edge_index_reshaped[[1, 0], :]), dim=1)
-    data.edge_index = (undirected_edge[0, :], undirected_edge[1, :])
+    data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
 
     return data

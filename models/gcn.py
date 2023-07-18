@@ -42,7 +42,7 @@ class GCN(torch.nn.Module):
             for bn in self.bns:
                 bn.reset_parameters()
 
-    def forward(self, x, edge_index: Union[Tensor, SparseTensor]):
+    def forward(self, x, edge_index: Union[Tensor, SparseTensor], **kwargs):
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(x, edge_index)
             if self.batchnorm:
