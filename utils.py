@@ -58,7 +58,8 @@ def set_random_seed(seed: int):
 
 def _prepare_data(args: Namespace) -> Data:
     if args.model == "tgat":
-        dataset_transform = transforms.OneHotDegree(max_degree=10)
+        # dataset_transform = transforms.OneHotDegree(max_degree=10)
+        dataset_transform = None
         return data_processing.DGraphDataset(transform=dataset_transform)[0]
 
     dataset_transform = transforms.Compose([transforms.ToSparseTensor()])

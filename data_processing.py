@@ -149,6 +149,9 @@ def process_tgat_data(data: Data, max_time_steps=32):
     node_time = np.array(list(key.values()))
     data.node_time = torch.tensor(node_time)
 
+    data.node_out_degree = torch_geometric.utils.degree(
+        data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+
     # trans to undirected graph
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)

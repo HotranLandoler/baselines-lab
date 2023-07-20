@@ -156,3 +156,12 @@ Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=Fals
 AUC: [0.8064777255058289, 0.8074696063995361, 0.8057989478111267]
 AP: [0.5218079090118408, 0.5215710997581482, 0.5214335322380066]
 Final AUC: 0.8066 ± 0.0008, Final AP: 0.5216 ± 0.0002,
+
+[2023-07-18 16:59:16]
+Model: TGAT
+Dataset: DGraph
+Note: Encode node out-degree with a one-layer mlp
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.806388258934021, 0.8083155155181885, 0.8078852891921997]
+AP: [0.5216020345687866, 0.5219265222549438, 0.521946370601654]
+Final AUC: 0.8075 ± 0.0010, Final AP: 0.5218 ± 0.0002,
