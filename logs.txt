@@ -165,3 +165,39 @@ Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=Fals
 AUC: [0.806388258934021, 0.8083155155181885, 0.8078852891921997]
 AP: [0.5216020345687866, 0.5219265222549438, 0.521946370601654]
 Final AUC: 0.8075 ± 0.0010, Final AP: 0.5218 ± 0.0002,
+
+[2023-07-20 15:36:51]
+Model: TGAT
+Dataset: DGraph
+Note: Drop Edge based on Cosine similarity
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7398906350135803]
+AP: [0.5124528408050537]
+Final AUC: 0.7399 ± nan, Final AP: 0.5125 ± nan,
+
+[2023-07-21 10:07:06]
+Model: TGAT
+Dataset: DGraph
+Note: Original TGAT with heads=1(MlpTransformerConv without dropping, return message as is)
+Settings: Namespace(epochs=500, runs=1, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7854942679405212]
+AP: [0.5191372632980347]
+Final AUC: 0.7855 ± nan, Final AP: 0.5191 ± nan,
+
+[2023-07-21 10:18:28]
+Model: TGAT
+Dataset: DGraph
+Note: TGAT(heads=1) with Mlp DropMessage(Softmax), drop rate[0]: 0.3113 => 0.3831.
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7983262538909912, 0.7977075576782227, 0.7965013980865479]
+AP: [0.5196517109870911, 0.519663393497467, 0.5194103121757507]
+Final AUC: 0.7975 ± 0.0009, Final AP: 0.5196 ± 0.0001,
+
+[2023-07-21 10:32:37]
+Model: TGAT
+Dataset: DGraph
+Note: TGAT with Mlp DropMessage(Softmax), drop rate[0]: 0.3339 => 0.3775.
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.8017441630363464, 0.7985391020774841, 0.7987055778503418]
+AP: [0.5204039216041565, 0.520063579082489, 0.5198866128921509]
+Final AUC: 0.7997 ± 0.0018, Final AP: 0.5201 ± 0.0003,

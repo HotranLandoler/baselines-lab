@@ -1,6 +1,12 @@
+import math
+
 import torch
 import numpy as np
+import torch_geometric.utils as pyg_utils
 from torch import Tensor
+from torch.nn import Linear
+from torch_geometric.nn import TransformerConv
+from torch_geometric.typing import OptTensor
 
 
 class TimeEncode(torch.nn.Module):
@@ -30,3 +36,65 @@ class TimeEncode(torch.nn.Module):
         harmonic = torch.cos(map_ts)
 
         return harmonic  # self.dense(harmonic)
+
+
+class MlpDropTransformerConv(TransformerConv):
+    pre_transform_linear: Linear
+    mlp: Linear
+
+    """Drop message based on mlp"""
+    def __init__(self,
+                 in_channels: int,
+                 out_channels: int,
+                 hidden_channels: int,
+                 heads: int = 1,
+                 dropout: float = 0.,
+                 edge_dim: int | None = None):
+        super().__init__(in_channels,
+                         out_channels,
+                         heads=heads,
+                         dropout=dropout,
+                         edge_dim=edge_dim)
+        self.pre_transform_linear = Linear(out_channels, hidden_channels)
+        self.mlp = Linear(3 * hidden_channels, 1)
+
+    def message(self, query_i: Tensor, key_j: Tensor, value_j: Tensor,
+                edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
+                size_i: int | None) -> Tensor:
+        out = super().message(query_i, key_j, value_j, edge_attr, index, ptr, size_i)
+
+        x_i_transformed = self.pre_transform_linear(query_i)
+        x_j_transformed = self.pre_transform_linear(key_j)
+        diff = x_i_transformed - x_j_transformed
+        x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=-1)
+        drop_rate = self.mlp(x_cat)
+        drop_rate = pyg_utils.softmax(drop_rate, index, ptr, size_i)
+        print(f"drop rate[0]: {drop_rate[0]}")
+
+        out = _multi_dropout(out, probability=drop_rate)
+
+        # cos_similarity = torch.cosine_similarity(
+        #     query_i,
+        #     key_j,
+        #     dim=-1).view(-1, self.heads, 1)
+        # out = _drop_edge(out, cos_similarity)
+
+        return out
+
+    def reset_parameters(self):
+        super().reset_parameters()
+        if hasattr(self, 'pre_transform_linear'):
+            self.pre_transform_linear.reset_parameters()
+        if hasattr(self, 'mlp'):
+            self.mlp.reset_parameters()
+
+
+def _drop_edge(message: Tensor, similarity: Tensor, threshold=0.1) -> Tensor:
+    mask: Tensor = similarity >= threshold
+    return mask * message
+
+
+def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
+    assert x.shape[0] == probability.shape[0]
+    mask: Tensor = torch.rand_like(x) > probability
+    return mask * x  # / (1.0 - probability)

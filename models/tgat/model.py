@@ -5,7 +5,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import TransformerConv
 from torch_sparse import SparseTensor
 
-from models.tgat.layers import TimeEncode
+from models.tgat.layers import TimeEncode, MlpDropTransformerConv
 
 
 class TGAT(torch.nn.Module):
@@ -14,10 +14,12 @@ class TGAT(torch.nn.Module):
         super().__init__()
         self.time_enc = TimeEncode(32)
         self.lin = torch.nn.Linear(in_channels, 32)
-        self.conv = TransformerConv(32, 32 // 2, heads=2,
-                                    dropout=0.1, edge_dim=edge_dim)
-        # self.conv1 = TransformerConv(32, 32 // 2, heads=2,
-        #                              dropout=0.1, edge_dim=edge_dim)
+        # self.conv = TransformerConv(32, 32 // 1, heads=1,
+        #                             dropout=0.1, edge_dim=edge_dim)
+        self.conv = MlpDropTransformerConv(32, 32 // 2,
+                                           hidden_channels=8,
+                                           heads=2,
+                                           dropout=0.1, edge_dim=edge_dim)
         self.out = torch.nn.Linear(32, out_channels)
 
         self.lin_degree = torch.nn.Linear(1, 8)
