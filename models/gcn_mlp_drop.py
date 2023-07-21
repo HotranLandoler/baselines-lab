@@ -37,6 +37,8 @@ class AdaptiveGNNLayer(GNNLayer):
 
 
 class AdaptiveBbGCN(BbGCN):
+    drop_rate: Tensor | None
+
     def __init__(self, in_channels: int, hidden_channels=8):
         """Init GCN with MLP-DropMessage
 
@@ -53,9 +55,12 @@ class AdaptiveBbGCN(BbGCN):
                 x_i: Tensor,
                 x_j: Tensor,
                 edge_index_target: Tensor,
-                dim_size: int):
+                dim_size: int,
+                index: Tensor,
+                ptr: Tensor | None,
+                size_i: int | None):
         if not self.training:
-            return x_j
+            return x_j * (1.0 - self.drop_rate)
 
         # cos_similarity = torch.cosine_similarity(x_i, x_j).view(-1, 1)
         # # print(f"cos: {cos_similarity[:3]}")
@@ -66,23 +71,26 @@ class AdaptiveBbGCN(BbGCN):
         x_j_transformed = self.pre_transform_linear(x_j)
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=1)
-        similarity_exp = torch.exp(self.mlp(x_cat))
-        neighbor_sum = (similarity_exp.new_zeros(dim_size, 1).
-                        scatter_add(dim=0,
-                                    index=edge_index_target.view(-1, similarity_exp.shape[1]),
-                                    src=similarity_exp))
-
-        drop_rate_mlp = similarity_exp / neighbor_sum[edge_index_target]
+        similarity = self.mlp(x_cat)
+        # similarity_exp = torch.exp(self.mlp(x_cat))
+        # neighbor_sum = (similarity_exp.new_zeros(dim_size, 1).
+        #                 scatter_add(dim=0,
+        #                             index=edge_index_target.view(-1, similarity_exp.shape[1]),
+        #                             src=similarity_exp))
+        #
+        # drop_rate_mlp = similarity_exp / neighbor_sum[edge_index_target]
+        drop_rate_mlp = pyg_utils.softmax(similarity, index, ptr, size_i)
         print(f"MLP output: {drop_rate_mlp[:3]}")
         # print("Dropping...")
 
-        print(f"Before drop: {x_j[:3]}")
+        # print(f"Before drop: {x_j[:3]}")
 
         # drop messages
         x_j = _multi_dropout(x_j, probability=drop_rate_mlp)
+        self.drop_rate = drop_rate_mlp
         # x_j = self.multi_dropout(x_j, p=drop_rate_mlp)
 
-        print(f"After drop: {x_j[:3]}")
+        # print(f"After drop: {x_j[:3]}")
         # print("Dropped.")
 
         return x_j

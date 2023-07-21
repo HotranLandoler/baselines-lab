@@ -19,7 +19,7 @@ class DropGCN(torch.nn.Module):
         # self.gnn1 = GCNConv(feature_num, 64)
         # self.gnn2 = GCNConv(64, output_num)
 
-    def forward(self, x: Tensor, edge_index: Adj, drop_rate=0.0):
+    def forward(self, x: Tensor, edge_index: Adj, drop_rate=0.0, **kwargs):
         x = self.gnn1(x, edge_index, drop_rate)
         x = F.relu(x)
         x = self.gnn2(x, edge_index, drop_rate)
