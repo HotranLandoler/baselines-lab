@@ -14,7 +14,7 @@ class TGAT(torch.nn.Module):
         super().__init__()
         self.time_enc = TimeEncode(32)
         self.lin = torch.nn.Linear(in_channels, 32)
-        self.conv = TransformerConv(32, 32 // 1, heads=1,
+        self.conv = TransformerConv(32, 32 // 2, heads=2,
                                     dropout=0.1, edge_dim=edge_dim)
         # self.conv = MlpDropTransformerConv(32, 32 // 2,
         #                                    hidden_channels=8,
@@ -46,12 +46,12 @@ class TGAT(torch.nn.Module):
         h1 = self.conv(h1, data.edge_index, rel_t_enc)
 
         # Layer 2
-        intermediate_results = [h1]
+        # intermediate_results = [h1]
         h1 = F.relu(h1)
         h1 = self.conv1(h1, edge_index, rel_t_enc)
-        intermediate_results.append(h1)
-        h1 = torch.cat(intermediate_results, dim=1)
-        h1 = self.lin_intermediate_results(h1)
+        # intermediate_results.append(h1)
+        # h1 = torch.cat(intermediate_results, dim=1)
+        # h1 = self.lin_intermediate_results(h1)
 
         out = self.out(h1)
         return F.log_softmax(out, dim=1)
@@ -65,3 +65,5 @@ class TGAT(torch.nn.Module):
 
         self.lin_degree.reset_parameters()
         self.lin_combine.reset_parameters()
+
+        self.lin_intermediate_results.reset_parameters()

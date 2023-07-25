@@ -210,3 +210,30 @@ Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=Fals
 AUC: [0.8068417906761169, 0.80573970079422, 0.8065900802612305]
 AP: [0.5210649967193604, 0.5213126540184021, 0.5208353400230408]
 Final AUC: 0.8064 ± 0.0006, Final AP: 0.5211 ± 0.0002,
+
+[2023-07-25 16:25:24]
+Model: TGAT
+Dataset: DGraph
+Note: Encode out-degree + 2-layer TGAT
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.8197082281112671, 0.8177447319030762, 0.818917989730835]
+AP: [0.5241056680679321, 0.5235188603401184, 0.523849368095398]
+Final AUC: 0.8188 ± 0.0010, Final AP: 0.5238 ± 0.0003,
+
+[2023-07-25 16:31:56]
+Model: TGAT
+Dataset: DGraph
+Note: Encode out-degree + 2-layer TGAT + H2GCN D3 (concat intermediate results)
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.8185088634490967, 0.8177088499069214, 0.8218623399734497]
+AP: [0.5247824192047119, 0.5239855051040649, 0.5247483849525452]
+Final AUC: 0.8194 ± 0.0022, Final AP: 0.5245 ± 0.0005,
+
+[2023-07-25 16:47:00]
+Model: TGAT
+Dataset: DGraph
+Note: 2-layer Original TGAT
+Settings: Namespace(epochs=200, runs=1, loss_weight=50, save_log=True, plot=False, weight_decay=0.0, num_classes=2, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.8096078038215637]
+AP: [0.5229834318161011]
+Final AUC: 0.8096 ± nan, Final AP: 0.5230 ± nan,
