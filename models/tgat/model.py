@@ -26,7 +26,7 @@ class TGAT(torch.nn.Module):
         self.lin_combine = torch.nn.Linear(8 + 32, 32)
 
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
-                encode_degree=False):
+                encode_degree=True):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
