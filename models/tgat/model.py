@@ -13,6 +13,7 @@ class TGAT(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32):
         super().__init__()
         self.time_enc = TimeEncode(32)
+        self.degree_enc = TimeEncode(32)
         self.lin = torch.nn.Linear(in_channels, 32)
         self.conv = TransformerConv(32, 32 // 2, heads=2,
                                     dropout=0.1, edge_dim=edge_dim)
@@ -25,12 +26,12 @@ class TGAT(torch.nn.Module):
         self.out = torch.nn.Linear(32, out_channels)
 
         self.lin_degree = torch.nn.Linear(1, 8)
-        self.lin_combine = torch.nn.Linear(8 + 32, 32)
+        self.lin_combine = torch.nn.Linear(32 * 2, 32)
 
         self.lin_intermediate_results = torch.nn.Linear(32 * 2, 32)
 
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
-                encode_degree=False):
+                encode_degree=True):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
@@ -38,17 +39,20 @@ class TGAT(torch.nn.Module):
         h1 = F.relu(h1)
 
         if encode_degree:
-            degree_enc = self.lin_degree(data.node_out_degree)
-            degree_enc = F.relu(degree_enc)
-
-            h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
+            rel_out_degree = (data.node_out_degree[data.edge_index[0]] -
+                              data.node_out_degree[data.edge_index[1]]).view(-1, 1)
+            rel_out_degree_enc = self.degree_enc(rel_out_degree.to(data.x.dtype))
+            rel_t_enc = self.lin_combine(torch.concat((rel_t_enc, rel_out_degree_enc), dim=-1))
+            # degree_enc = self.lin_degree(data.node_out_degree)
+            # degree_enc = F.relu(degree_enc)
+            # h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
 
         h1 = self.conv(h1, data.edge_index, rel_t_enc)
 
         # Layer 2
         # intermediate_results = [h1]
-        h1 = F.relu(h1)
-        h1 = self.conv1(h1, edge_index, rel_t_enc)
+        # h1 = F.relu(h1)
+        # h1 = self.conv1(h1, edge_index, rel_t_enc)
         # intermediate_results.append(h1)
         # h1 = torch.cat(intermediate_results, dim=1)
         # h1 = self.lin_intermediate_results(h1)
@@ -60,7 +64,7 @@ class TGAT(torch.nn.Module):
         # self.time_enc.reset_parameters()
         self.lin.reset_parameters()
         self.conv.reset_parameters()
-        # self.conv1.reset_parameters()
+        self.conv1.reset_parameters()
         self.out.reset_parameters()
 
         self.lin_degree.reset_parameters()
