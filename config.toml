@@ -1,5 +1,5 @@
 # Basic configs
-model = "sage"
+model = "mlp"
 dataset = "DGraph"
 device = "cuda:0"
 

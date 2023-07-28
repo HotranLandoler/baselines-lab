@@ -15,6 +15,6 @@ class MLP(torch.nn.Module):
     def reset_parameters(self):
         pass
 
-    def forward(self, x: Tensor, edge_index):
+    def forward(self, x: Tensor, edge_index, **kwargs):
         x = self.mlp(x)
         return x.log_softmax(dim=-1)
