@@ -9,7 +9,7 @@ from torch.nn import Module
 from torch_geometric.data import Data
 
 import data_processing
-from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT
+from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT, GraphSAGE
 
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
@@ -80,6 +80,12 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
             model = GCN(in_channels=data.num_features, hidden_channels=args.hidden_size,
                         out_channels=args.num_classes, dropout=args.dropout,
                         num_layers=args.num_layers)
+        case "sage":
+            model = GraphSAGE(in_channels=data.num_features,
+                              hidden_channels=args.hidden_size,
+                              num_layers=args.num_layers,
+                              out_channels=args.num_classes,
+                              dropout=args.dropout)
         case "dropgcn":
             model = DropGCN(feature_num=data.num_features,
                             output_num=args.num_classes)

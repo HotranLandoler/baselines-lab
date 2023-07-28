@@ -69,7 +69,7 @@ def _train_run(run: int,
     for epoch in range(args.epochs):
         train_loss = _train_epoch(model, data, edge_index,
                                   optimizer, args, loss_weight=loss_weight)
-        val_loss = _validate_epoch(model, data, edge_index,
+        val_loss = _validate_epoch(model, data, edge_index, args,
                                    loss_weight=loss_weight)
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
@@ -84,7 +84,7 @@ def _train_run(run: int,
 
     # Test
     model.eval()
-    predicts = model(data.x, edge_index, data=data)
+    predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
     # result = metric(predicts[dataset.test_mask], dataset.y[dataset.test_mask], num_classes=OUT_FEATS)
     # logger.add_result(result.item())
     print(f"Run {run}: ", end='')
@@ -105,10 +105,7 @@ def _train_epoch(model: torch.nn.Module,
     optimizer.zero_grad()
 
     # with autograd.detect_anomaly():
-    if args.model == "dropgcn":
-        output = model(data.x, edge_index, drop_rate=args.drop_rate)
-    else:
-        output = model(data.x, edge_index, data=data)
+    output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
 
     loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                          weight=loss_weight)
@@ -122,12 +119,21 @@ def _train_epoch(model: torch.nn.Module,
 def _validate_epoch(model: torch.nn.Module,
                     data: Data,
                     edge_index: Tensor | SparseTensor,
+                    args: argparse.Namespace,
                     loss_weight: torch.Tensor | None) -> float:
     model.eval()
-    predicts = model(data.x, edge_index, data=data)
+    predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
     val_loss = func.nll_loss(predicts[data.val_mask], data.y[data.val_mask],
                              weight=loss_weight)
     return val_loss.item()
+
+
+def _model_wrapper(model: torch.nn.Module,
+                   x: Tensor,
+                   edge_index: Tensor | SparseTensor,
+                   data: Data,
+                   drop_rate: float) -> Tensor:
+    return model(x, edge_index, data=data, drop_rate=drop_rate)
 
 
 if __name__ == "__main__":

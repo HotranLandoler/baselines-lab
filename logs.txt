@@ -246,3 +246,12 @@ Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=Fals
 AUC: [0.804065465927124, 0.8021681308746338, 0.8032788038253784]
 AP: [0.5212653875350952, 0.5205273628234863, 0.5208758115768433]
 Final AUC: 0.8032 ± 0.0010, Final AP: 0.5209 ± 0.0004,
+
+[2023-07-28 11:02:19]
+Model: SAGE
+Dataset: DGraph
+Note: Original GraphSAGE
+Settings: Namespace(epochs=500, runs=3, loss_weight=50, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, model='sage', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.781286895275116, 0.7802429795265198, 0.7808024883270264]
+AP: [0.5200319886207581, 0.5189864039421082, 0.5192331671714783]
+Final AUC: 0.7808 ± 0.0005, Final AP: 0.5194 ± 0.0005,

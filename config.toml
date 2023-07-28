@@ -1,5 +1,5 @@
 # Basic configs
-model = "tgat"
+model = "sage"
 dataset = "DGraph"
 device = "cuda:0"
 
@@ -11,6 +11,9 @@ random_seed = 0
 # Learning rate
 lr = 0.01
 
+# Drop Message rate
+drop_rate = 0.25
+
 metrics = ["AUC", "AP"]
 
 use_early_stopping = true
@@ -19,6 +22,7 @@ early_stopping_patience = 10
 log_path = "./logs.txt"
 
 # Dataset configs
+
 [datasets.DGraph]
 num_classes = 2
 
@@ -26,19 +30,22 @@ num_classes = 2
 num_classes = 7
 
 # Model configs
+
 [models.gcn]
 # GCN
+weight_decay = 5e-7
+
+[models.sage]
+# GraphSAGE
 weight_decay = 5e-7
 
 [models.dropgcn]
 # GCN with DropMessage
 weight_decay = 0e-4
-drop_rate = 0.0
 
 [models.mlpdropgcn]
 # GCN with DropMessage, DropRate from MLP
 weight_decay = 0e-4
-drop_rate = 0.0
 
 [models.tgat]
 # TGAT
