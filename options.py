@@ -12,7 +12,7 @@ def prepare_args():
     parser = ArgumentParser(description="Prepare args")
     parser.add_argument('--epochs', type=int, default=200)
     parser.add_argument('--runs', type=int, default=3)
-    parser.add_argument('--loss-weight', type=int, default=50)
+    # parser.add_argument('--loss-weight', type=int, default=50)
     parser.add_argument('--save-log', action='store_true', help='save experiment log to file')
     parser.add_argument('--plot', action='store_true', help='plot losses and save to file')
     args = parser.parse_args()

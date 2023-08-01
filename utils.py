@@ -9,6 +9,7 @@ from torch.nn import Module
 from torch_geometric.data import Data
 
 import data_processing
+import datasets
 from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT, GraphSAGE
 
 
@@ -34,8 +35,8 @@ def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
         raise ValueError("Device CUDA not available")
 
     data = _prepare_data(args)
-    model = _prepare_model(args, data)
     data = _process_data(args, data)
+    model = _prepare_model(args, data)
     return data.to(args.device), model.to(args.device)
 
 
@@ -60,14 +61,16 @@ def _prepare_data(args: Namespace) -> Data:
     if args.model == "tgat":
         # dataset_transform = transforms.OneHotDegree(max_degree=10)
         dataset_transform = None
-        return data_processing.DGraphDataset(transform=dataset_transform)[0]
+    else:
+        dataset_transform = transforms.Compose([transforms.ToSparseTensor()])
 
-    dataset_transform = transforms.Compose([transforms.ToSparseTensor()])
     match args.dataset:
         case "DGraph":
-            data = data_processing.DGraphDataset(transform=dataset_transform)[0]
+            data = datasets.DGraphDataset(transform=dataset_transform)[0]
         case "Cora":
             data = data_processing.get_cora(transform=dataset_transform)
+        case "Reddit" | "Wikipedia":
+            data = data_processing.get_jodie(args.dataset, transform=dataset_transform)
         case _:
             raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
@@ -115,11 +118,14 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
 
 
 def _process_data(args: Namespace, data: Data) -> Data:
-    if args.dataset != "DGraph":
-        return data
+    if args.dataset == "DGraph" and args.model != "tgat":
+        return data_processing.data_preprocess(data)
+
+    if args.dataset == "Wikipedia":
+        return data_processing.process_tgat_data(args.dataset, data)
 
     match args.model:
         case "tgat":
-            return data_processing.process_tgat_data(data)
+            return data_processing.process_tgat_data(args.dataset, data)
         case _:
-            return data_processing.data_preprocess(data)
+            return data
