@@ -1,5 +1,5 @@
 # Basic configs
-model = "tgat"
+model = "amnet"
 dataset = "DGraph"
 device = "cuda:0"
 
@@ -63,4 +63,8 @@ weight_decay = 0e-4
 
 [models.mlp]
 # MLP
+weight_decay = 0e-4
+
+[models.amnet]
+# AMNet
 weight_decay = 0e-4

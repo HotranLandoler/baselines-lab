@@ -41,7 +41,11 @@ def data_preprocess(data: Data) -> Data:
     - Reshape y
     """
     # To undirected
-    data.adj_t = data.adj_t.to_symmetric()
+    if hasattr(data, "adj_t"):
+        data.adj_t = data.adj_t.to_symmetric()
+    else:
+        data.edge_index, data.edge_weight = torch_geometric.utils.to_undirected(
+            data.edge_index, data.edge_weight)
     # Normalization
     x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)

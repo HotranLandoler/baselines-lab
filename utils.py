@@ -10,7 +10,7 @@ from torch_geometric.data import Data
 
 import data_processing
 import datasets
-from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT, GraphSAGE
+from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet
 
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
@@ -58,7 +58,7 @@ def set_random_seed(seed: int):
 
 
 def _prepare_data(args: Namespace) -> Data:
-    if args.model == "tgat":
+    if args.model in ["tgat", "amnet"]:
         # dataset_transform = transforms.OneHotDegree(max_degree=10)
         dataset_transform = None
     else:
@@ -110,6 +110,12 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                         out_channels=args.num_classes)
         case "tgat":
             model = TGAT(in_channels=data.num_features, out_channels=args.num_classes)
+        case "amnet":
+            model = AMNet(in_channels=data.num_features,
+                          hid_channels=args.hidden_size,
+                          num_class=args.num_classes,
+                          K=7,
+                          filter_num=2)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")
 

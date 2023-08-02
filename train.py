@@ -66,9 +66,17 @@ def _train_run(run: int,
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
+    # For AMNet
+    train_mask_bool = torch.zeros(data.num_nodes, dtype=torch.bool, device=args.device)
+    train_mask_bool[data.train_mask] = True
+    anomaly_label = train_mask_bool & (data.y == 1)
+    normal_label = train_mask_bool & (data.y == 0)
+
     for epoch in range(args.epochs):
         train_loss = _train_epoch(model, data, edge_index,
-                                  optimizer, args, loss_weight=loss_weight)
+                                  optimizer, args, loss_weight=loss_weight,
+                                  anomaly_label=anomaly_label,
+                                  normal_label=normal_label)
         val_loss = _validate_epoch(model, data, edge_index, args,
                                    loss_weight=loss_weight)
         print(f"Epoch {epoch} finished. "
@@ -100,15 +108,24 @@ def _train_epoch(model: torch.nn.Module,
                  edge_index: Tensor | SparseTensor,
                  optimizer: torch.optim.Optimizer,
                  args: argparse.Namespace,
-                 loss_weight: torch.Tensor | None) -> float:
+                 loss_weight: torch.Tensor | None,
+                 anomaly_label: Tensor,
+                 normal_label: Tensor) -> float:
     model.train()
     optimizer.zero_grad()
 
-    # with autograd.detect_anomaly():
-    output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+    with autograd.detect_anomaly():
+        if args.model == "amnet":
+            output, bias_loss = model(data.x, edge_index,
+                                      label=(anomaly_label, normal_label))
+            beta = 0.3
+            loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
+                    bias_loss * beta)
+        else:
+            output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+            loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
+                                 weight=loss_weight)
 
-    loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
-                         weight=loss_weight)
     loss.backward()
 
     optimizer.step()
