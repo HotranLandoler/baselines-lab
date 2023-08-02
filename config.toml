@@ -1,5 +1,5 @@
 # Basic configs
-model = "gcn"
+model = "sage"
 dataset = "Yelp"
 device = "cuda:0"
 
