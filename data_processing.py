@@ -1,10 +1,12 @@
 import os
+import random
 from typing import Optional, Callable, Literal
 
 import numpy as np
 import torch
 import pandas as pd
 import torch_geometric.transforms
+import sklearn
 from torch import Tensor
 from torch_geometric.data import InMemoryDataset, TemporalData
 from torch_geometric.data import Data
@@ -102,6 +104,9 @@ def _process_jodie_for_tgat(data: TemporalData) -> Data:
     edge_index = torch.stack((data.src, data.dst))
     edge_time = data.t.view(-1, 1)
 
+    y = torch.zeros(data.num_nodes, dtype=data.y.dtype)
+    y[data.src[data.y == 1]] = 1
+
     edge_msg = torch.cat([edge_index.T, data.msg], dim=-1)
     msg_mean = torch.tensor(pd.DataFrame(edge_msg.numpy()).groupby(0).mean().values[:, 1:])
     # x = torch.zeros((data.num_nodes - msg_mean.shape[0], data.msg.shape[1]))
@@ -118,15 +123,21 @@ def _process_jodie_for_tgat(data: TemporalData) -> Data:
     node_out_degree = torch_geometric.utils.degree(
         edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
 
-    mask = torch.zeros(data.num_nodes, dtype=torch.int)
-    mask[:6459] = 0
-    mask[6459:7844] = 1
-    mask[7844:] = 2
-    # Shuffle
-    indexes = torch.randperm(mask.nelement())
-    train_mask = mask[indexes] == 0
-    val_mask = mask[indexes] == 1
-    test_mask = mask[indexes] == 2
+    indexes = [i for i in range(8227)]
+    random.shuffle(indexes)
+    train_mask = torch.tensor(indexes[:5759])
+    val_mask = torch.tensor(indexes[5759:6993])
+    test_mask = torch.tensor(indexes[6993:])
+
+    # mask = torch.zeros(data.num_nodes, dtype=torch.int)
+    # mask[:6459] = 0
+    # mask[6459:7844] = 1
+    # mask[7844:] = 2
+    # # Shuffle
+    # indexes = torch.randperm(mask.nelement())
+    # train_mask = mask[indexes] == 0
+    # val_mask = mask[indexes] == 1
+    # test_mask = mask[indexes] == 2
 
     # train_mask = torch.zeros(data.num_nodes, dtype=torch.int)
     # train_mask[:6459] = True
@@ -139,9 +150,6 @@ def _process_jodie_for_tgat(data: TemporalData) -> Data:
     # train_mask = data.t <= val_time
     # val_mask = (data.t > val_time) * (data.t <= test_time)
     # test_mask = data.t > test_time
-
-    y = torch.zeros(data.num_nodes, dtype=data.y.dtype)
-    y[data.src[data.y == 1]] = 1
 
     return Data(x, edge_index, data.msg, y,
                 train_mask=train_mask,

@@ -114,17 +114,17 @@ def _train_epoch(model: torch.nn.Module,
     model.train()
     optimizer.zero_grad()
 
-    with autograd.detect_anomaly():
-        if args.model == "amnet":
-            output, bias_loss = model(data.x, edge_index,
-                                      label=(anomaly_label, normal_label))
-            beta = 0.3
-            loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
-                    bias_loss * beta)
-        else:
-            output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-            loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
-                                 weight=loss_weight)
+    # with autograd.detect_anomaly():
+    if args.model == "amnet":
+        output, bias_loss = model(data.x, edge_index,
+                                  label=(anomaly_label, normal_label))
+        beta = 0.3
+        loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
+                bias_loss * beta)
+    else:
+        output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
+                             weight=loss_weight)
 
     loss.backward()
 

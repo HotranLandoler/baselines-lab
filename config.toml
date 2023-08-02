@@ -1,6 +1,6 @@
 # Basic configs
-model = "amnet"
-dataset = "DGraph"
+model = "tgat"
+dataset = "Wikipedia"
 device = "cuda:0"
 
 hidden_size = 64
@@ -9,7 +9,7 @@ dropout = 0.0
 random_seed = 0
 
 # Learning rate
-lr = 0.01
+lr = 0.001
 
 # Drop Message rate
 drop_rate = 0.25
@@ -33,7 +33,7 @@ loss_weight = 1
 
 [datasets.Wikipedia]
 num_classes = 2
-loss_weight = 1
+loss_weight = 50
 
 # Model configs
 
