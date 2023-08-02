@@ -166,8 +166,20 @@ def process_yelpchi(data: Data) -> Data:
     val_mask = torch.tensor(indexes[32168:39061])
     test_mask = torch.tensor(indexes[39061:])
 
+    edge_time = torch.zeros((data.num_edges, 1), dtype=torch.float32)
+    node_time = torch.zeros(data.num_nodes, dtype=torch.float32)
+
+    if not hasattr(data, 'adj_t'):
+        node_out_degree = torch_geometric.utils.degree(
+            data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+        data.node_out_degree = node_out_degree
+
     data.train_mask = train_mask
     data.val_mask = val_mask
     data.test_mask = test_mask
+
+    data.edge_time = edge_time
+    data.node_time = node_time
+
     return data
 

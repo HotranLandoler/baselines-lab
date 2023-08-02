@@ -27,14 +27,14 @@ class TGAT(torch.nn.Module):
 
         self.lin_degree = torch.nn.Linear(1, 8)
         # self.lin_degree1 = torch.nn.Linear(8, 4)
-        self.lin_combine = torch.nn.Linear(32 + 4, 32)
+        self.lin_combine = torch.nn.Linear(32 + 8, 32)
 
         self.lin_intermediate_results = torch.nn.Linear(32 * 2, 32)
 
         self.lin_edge_attr = torch.nn.Linear(32 + 172, 32)
 
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
-                encode_degree=False, **kwargs):
+                encode_degree=True, **kwargs):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
@@ -52,8 +52,9 @@ class TGAT(torch.nn.Module):
             # degree_enc = self.lin_degree1(degree_enc)
             h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
 
-        rel_t_enc = self.lin_edge_attr(torch.cat((rel_t_enc,
-                                                  data.edge_attr.view(-1, 1, 172)), dim=-1))
+        # Edge Attr
+        # rel_t_enc = self.lin_edge_attr(torch.cat((rel_t_enc,
+        #                                           data.edge_attr.view(-1, 1, 172)), dim=-1))
         # rel_t_enc = torch.cat((rel_t_enc, data.edge_attr.view(-1, 1, 172)), dim=-1)
 
         h1 = self.conv(h1, data.edge_index, rel_t_enc)

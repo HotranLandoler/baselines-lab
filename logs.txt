@@ -300,3 +300,21 @@ Settings: Namespace(epochs=500, runs=5, save_log=True, plot=False, weight_decay=
 AUC: [0.8242788314819336, 0.8317229151725769, 0.7778638601303101, 0.8264499306678772, 0.8450654149055481]
 AP: [0.7129825353622437, 0.7212264537811279, 0.6650494933128357, 0.7198691368103027, 0.7419054508209229]
 Final AUC: 0.8211 ± 0.0255, Final AP: 0.7122 ± 0.0285,
+
+[2023-08-02 16:28:19]
+Model: GCN
+Dataset: DGraph
+Note: Reimplemented GCN with PyG
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='gcn', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.7560920715332031, 0.754439115524292, 0.7569906711578369]
+AP: [0.5166826844215393, 0.516377866268158, 0.5163219571113586]
+Final AUC: 0.7558 ± 0.0013, Final AP: 0.5165 ± 0.0002,
+
+[2023-08-02 16:35:30]
+Model: GCN
+Dataset: Yelp
+Note: Reimplemented GCN with PyG
+Settings: Namespace(epochs=500, runs=5, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='gcn', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=10, log_path='./logs.txt')
+AUC: [0.5907934308052063, 0.46103334426879883, 0.46415868401527405, 0.5905599594116211, 0.5908468961715698]
+AP: [0.5546586513519287, 0.4847220182418823, 0.4854106307029724, 0.5537233948707581, 0.5523454546928406]
+Final AUC: 0.5395 ± 0.0702, Final AP: 0.5262 ± 0.0375,
