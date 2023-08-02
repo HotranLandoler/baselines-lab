@@ -1,6 +1,6 @@
 # Basic configs
-model = "tgat"
-dataset = "Wikipedia"
+model = "gcn"
+dataset = "Yelp"
 device = "cuda:0"
 
 hidden_size = 64
@@ -9,7 +9,7 @@ dropout = 0.0
 random_seed = 0
 
 # Learning rate
-lr = 0.001
+lr = 0.01
 
 # Drop Message rate
 drop_rate = 0.25
@@ -32,6 +32,10 @@ num_classes = 7
 loss_weight = 1
 
 [datasets.Wikipedia]
+num_classes = 2
+loss_weight = 50
+
+[datasets.Yelp]
 num_classes = 2
 loss_weight = 50
 

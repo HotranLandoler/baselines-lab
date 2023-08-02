@@ -157,3 +157,17 @@ def _process_jodie_for_tgat(data: TemporalData) -> Data:
                 test_mask=test_mask,
                 edge_time=edge_time, node_time=node_time,
                 node_out_degree=node_out_degree)
+
+
+def process_yelpchi(data: Data) -> Data:
+    indexes = [i for i in range(data.num_nodes)]
+    random.shuffle(indexes)
+    train_mask = torch.tensor(indexes[:32168])
+    val_mask = torch.tensor(indexes[32168:39061])
+    test_mask = torch.tensor(indexes[39061:])
+
+    data.train_mask = train_mask
+    data.val_mask = val_mask
+    data.test_mask = test_mask
+    return data
+

@@ -42,7 +42,7 @@ def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
 
 def get_loss_weight(args: Namespace) -> Tensor | None:
     match args.dataset:
-        case "DGraph":
+        case "DGraph" | "Wikipedia" | "Yelp":
             return torch.tensor([1, args.loss_weight],
                                 dtype=torch.float32,
                                 device=args.device)
@@ -71,6 +71,8 @@ def _prepare_data(args: Namespace) -> Data:
             data = data_processing.get_cora(transform=dataset_transform)
         case "Reddit" | "Wikipedia":
             data = data_processing.get_jodie(args.dataset, transform=dataset_transform)
+        case "Yelp":
+            data = datasets.YelpChiDataset(transform=dataset_transform)[0]
         case _:
             raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
@@ -127,6 +129,10 @@ def _process_data(args: Namespace, data: Data) -> Data:
     if args.dataset == "DGraph" and args.model != "tgat":
         return data_processing.data_preprocess(data)
 
+    if args.dataset == "Yelp":
+        return data_processing.process_yelpchi(data)
+
+    # TODO
     if args.dataset == "Wikipedia":
         return data_processing.process_tgat_data(args.dataset, data)
 

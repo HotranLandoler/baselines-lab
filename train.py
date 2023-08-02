@@ -82,7 +82,8 @@ def _train_run(run: int,
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
               f"val_loss: {val_loss:>7f}")
-        logger.add_record(train_loss, val_loss)
+        if args.plot:
+            logger.add_record(train_loss, val_loss)
 
         if (args.use_early_stopping and
                 early_stopping.check_stop(val_loss)):
