@@ -1,5 +1,5 @@
 # Basic configs
-model = "gcn"
+model = "tgat"
 dataset = "Yelp"
 device = "cuda:0"
 
@@ -17,7 +17,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP"]
 
 use_early_stopping = true
-early_stopping_patience = 10
+early_stopping_patience = 40
 
 log_path = "./logs.txt"
 
@@ -59,7 +59,7 @@ weight_decay = 0e-4
 
 [models.tgat]
 # TGAT
-weight_decay = 0e-4
+weight_decay = 5e-7
 
 [models.h2gcn]
 # H2GCN

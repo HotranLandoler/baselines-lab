@@ -330,4 +330,38 @@ AUC: [0.5811125040054321, 0.5839990377426147, 0.5715546011924744, 0.588192224502
 AP: [0.5501546263694763, 0.5504870414733887, 0.5430634021759033, 0.55329430103302, 0.4802367687225342]
 Final AUC: 0.5559 ± 0.0569, Final AP: 0.5354 ± 0.0311,
 
+[2023-08-03 10:55:49]
+Model: MLP
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=0.0, num_classes=2, loss_weight=50, model='mlp', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8090652823448181, 0.8089472055435181, 0.808669924736023]
+AP: [0.7051684856414795, 0.7052255868911743, 0.705233633518219]
+Final AUC: 0.8089 ± 0.0002, Final AP: 0.7052 ± 0.0000,
 
+[2023-08-03 10:58:22]
+Model: SAGE
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='sage', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8208658695220947, 0.8337942361831665, 0.8349977731704712]
+AP: [0.7113910913467407, 0.7291322946548462, 0.7325536012649536]
+Final AUC: 0.8299 ± 0.0078, Final AP: 0.7244 ± 0.0114,
+
+[2023-08-03 11:16:05]
+Model: TGAT
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=40, log_path='./logs.txt')
+AUC: [0.8321517705917358, 0.8330928087234497, 0.8293852806091309]
+AP: [0.7156943678855896, 0.7137911319732666, 0.7186497449874878]
+Final AUC: 0.8315 ± 0.0019, Final AP: 0.7160 ± 0.0024,
+
+[2023-08-03 11:20:37]
+Model: TGAT
+Dataset: Yelp
+Note: One-layer MLP degree encoding
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=40, log_path='./logs.txt')
+AUC: [0.8104941844940186, 0.7947782278060913, 0.7967086434364319]
+AP: [0.7005664706230164, 0.682077944278717, 0.6848270297050476]
+Final AUC: 0.8007 ± 0.0086, Final AP: 0.6892 ± 0.0100,

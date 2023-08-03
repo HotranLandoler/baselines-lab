@@ -48,7 +48,7 @@ class TGAT(torch.nn.Module):
             # rel_t_enc = self.lin_combine(torch.concat((rel_t_enc, rel_out_degree_enc), dim=-1))
 
             degree_enc = self.lin_degree(data.node_out_degree)
-            # degree_enc = F.relu(degree_enc)
+            degree_enc = F.relu(degree_enc)
             # degree_enc = self.lin_degree1(degree_enc)
             h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
 
