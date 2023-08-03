@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import pandas as pd
 import torch_geometric.transforms
-import sklearn
+import sklearn.model_selection
 from torch import Tensor
 from torch_geometric.data import InMemoryDataset, TemporalData
 from torch_geometric.data import Data
@@ -159,12 +159,20 @@ def _process_jodie_for_tgat(data: TemporalData) -> Data:
                 node_out_degree=node_out_degree)
 
 
-def process_yelpchi(data: Data) -> Data:
-    indexes = [i for i in range(data.num_nodes)]
-    random.shuffle(indexes)
-    train_mask = torch.tensor(indexes[:32168])
-    val_mask = torch.tensor(indexes[32168:39061])
-    test_mask = torch.tensor(indexes[39061:])
+def process_yelpchi(data: Data, train_ratio=0.4, test_ratio=0.67) -> Data:
+    indexes = list(range(data.num_nodes))
+
+    train_mask, rest_indexes, _, rest_y = sklearn.model_selection.train_test_split(
+        indexes, data.y, stratify=data.y, train_size=train_ratio,
+        random_state=2, shuffle=True
+    )
+    val_mask, test_mask, _, _ = sklearn.model_selection.train_test_split(
+        rest_indexes, rest_y, stratify=rest_y, test_size=test_ratio,
+        random_state=2, shuffle=True
+    )
+    # train_mask = torch.tensor(indexes[:32168])
+    # val_mask = torch.tensor(indexes[32168:39061])
+    # test_mask = torch.tensor(indexes[39061:])
 
     edge_time = torch.zeros((data.num_edges, 1), dtype=torch.float32)
     node_time = torch.zeros(data.num_nodes, dtype=torch.float32)
