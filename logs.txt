@@ -365,3 +365,14 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=
 AUC: [0.8104941844940186, 0.7947782278060913, 0.7967086434364319]
 AP: [0.7005664706230164, 0.682077944278717, 0.6848270297050476]
 Final AUC: 0.8007 ± 0.0086, Final AP: 0.6892 ± 0.0100,
+
+#-------Normalize node out-degree---------
+
+[2023-08-03 16:07:56]
+Model: TGAT
+Dataset: Yelp
+Note: One-layer MLP degree encoding + Normalize node out-degree
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=40, log_path='./logs.txt')
+AUC: [0.838712215423584, 0.8368589878082275, 0.8372381925582886]
+AP: [0.7303809523582458, 0.7263599634170532, 0.7276057004928589]
+Final AUC: 0.8376 ± 0.0010, Final AP: 0.7281 ± 0.0021,

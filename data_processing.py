@@ -180,7 +180,7 @@ def process_yelpchi(data: Data, train_ratio=0.4, test_ratio=0.67) -> Data:
     if not hasattr(data, 'adj_t'):
         node_out_degree = torch_geometric.utils.degree(
             data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
-        data.node_out_degree = node_out_degree
+        data.node_out_degree = (node_out_degree - node_out_degree.mean(0)) / node_out_degree.std(0)
 
     data.train_mask = train_mask
     data.val_mask = val_mask
