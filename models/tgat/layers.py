@@ -39,6 +39,7 @@ class TimeEncode(torch.nn.Module):
 
 
 class MlpDropTransformerConv(TransformerConv):
+    drop_rate: Tensor | None
     pre_transform_linear: Linear
     mlp: Linear
 
@@ -62,16 +63,24 @@ class MlpDropTransformerConv(TransformerConv):
                 edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
                 size_i: int | None) -> Tensor:
         out = super().message(query_i, key_j, value_j, edge_attr, index, ptr, size_i)
+        if not self.training:
+            return out * (1.0 - self.drop_rate)
 
         x_i_transformed = self.pre_transform_linear(query_i)
         x_j_transformed = self.pre_transform_linear(key_j)
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=-1)
         drop_rate = self.mlp(x_cat)
+        # drop_rate = torch.nn.functional.sigmoid(drop_rate)
+
+        # drop_rate = torch.nn.functional.relu(drop_rate)
+        # drop_rate = torch.exp(-drop_rate)
+
         drop_rate = pyg_utils.softmax(drop_rate, index, ptr, size_i)
         print(f"drop rate[0]: {drop_rate[0][0].item()}")
 
         out = _multi_dropout(out, probability=drop_rate)
+        self.drop_rate = drop_rate
 
         # cos_similarity = torch.cosine_similarity(
         #     query_i,
@@ -95,6 +104,5 @@ def _drop_edge(message: Tensor, similarity: Tensor, threshold=0.1) -> Tensor:
 
 
 def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
-    assert x.shape[0] == probability.shape[0]
     mask: Tensor = torch.rand_like(x) > probability
     return mask * x  # / (1.0 - probability)

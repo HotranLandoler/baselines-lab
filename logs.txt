@@ -376,3 +376,21 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=
 AUC: [0.838712215423584, 0.8368589878082275, 0.8372381925582886]
 AP: [0.7303809523582458, 0.7263599634170532, 0.7276057004928589]
 Final AUC: 0.8376 ± 0.0010, Final AP: 0.7281 ± 0.0021,
+
+[2023-08-08 15:38:17]
+Model: TGAT
+Dataset: DGraph
+Note: MLP Drop (Stabilized)
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8013062477111816, 0.8007427453994751, 0.8013818264007568]
+AP: [0.520397424697876, 0.520182192325592, 0.520505428314209]
+Final AUC: 0.8011 ± 0.0003, Final AP: 0.5204 ± 0.0002,
+
+[2023-08-08 15:51:45]
+Model: TGAT
+Dataset: DGraph
+Note: Degree Enc + MLP Drop
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8074616193771362, 0.8091597557067871, 0.8098968267440796]
+AP: [0.5210883021354675, 0.5208535194396973, 0.5214824676513672]
+Final AUC: 0.8088 ± 0.0012, Final AP: 0.5211 ± 0.0003,
