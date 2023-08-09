@@ -1,5 +1,5 @@
 # Basic configs
-model = "h2gcn"
+model = "tgat"
 dataset = "DGraph"
 device = "cuda:0"
 

@@ -72,6 +72,11 @@ def process_tgat_data(dataset: Literal["DGraph", "Wikipedia"],
 
 
 def _process_dgraph_for_tgat(data: Data, max_time_steps=32) -> Data:
+    # Normalization
+    x: Tensor = data.x
+    x = (x - x.mean(0)) / x.std(0)
+    data.x = x
+
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
     data.edge_time = data.edge_time / data.edge_time.max()
     data.edge_time = (data.edge_time * max_time_steps).long()
