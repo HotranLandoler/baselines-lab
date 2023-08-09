@@ -394,3 +394,21 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=
 AUC: [0.8074616193771362, 0.8091597557067871, 0.8098968267440796]
 AP: [0.5210883021354675, 0.5208535194396973, 0.5214824676513672]
 Final AUC: 0.8088 ± 0.0012, Final AP: 0.5211 ± 0.0003,
+
+[2023-08-09 19:52:33]
+Model: H2GCN-D1D3
+Dataset: DGraph
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=0.0, num_classes=2, loss_weight=50, model='h2gcn', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.7843437194824219, 0.7872469425201416, 0.7879301309585571]
+AP: [0.5197790265083313, 0.5198134183883667, 0.519848644733429]
+Final AUC: 0.7865 ± 0.0019, Final AP: 0.5198 ± 0.0000,
+
+[2023-08-09 19:55:09]
+Model: H2GCN-D1D3
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=0.0, num_classes=2, loss_weight=50, model='h2gcn', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.7857011556625366, 0.7710045576095581, 0.7858210206031799]
+AP: [0.6696462631225586, 0.6537811756134033, 0.66927570104599]
+Final AUC: 0.7808 ± 0.0085, Final AP: 0.6642 ± 0.0091,

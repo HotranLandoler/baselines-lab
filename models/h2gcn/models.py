@@ -207,7 +207,7 @@ class H2GCN_EGO(torch.nn.Module):
         for conv in self.convs:
             conv.reset_parameters()
 
-    def forward(self, x: Tensor, edge_index: SparseTensor):
+    def forward(self, x: Tensor, edge_index: SparseTensor, **kwargs):
         intermediate_outputs = [x]
         for i, conv in enumerate(self.convs[:-1]):
             x = conv(x, edge_index)
