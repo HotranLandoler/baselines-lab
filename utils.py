@@ -10,7 +10,8 @@ from torch_geometric.data import Data
 
 import data_processing
 import datasets
-from models import GCN, DropGCN, MlpDropGCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet
+import models.h2gcn.utils
+from models import GCN, DropGCN, MlpDropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet
 
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
@@ -58,7 +59,7 @@ def set_random_seed(seed: int):
 
 
 def _prepare_data(args: Namespace) -> Data:
-    if args.model in ["tgat", "amnet"]:
+    if args.model in ["tgat", "amnet", "h2gcn"]:
         # dataset_transform = transforms.OneHotDegree(max_degree=10)
         dataset_transform = None
     else:
@@ -99,13 +100,15 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                                hidden_num=args.hidden_size,
                                output_num=args.num_classes)
         case "h2gcn":
-            # model = H2GCN(feat_dim=data.num_features,
-            #               hidden_dim=args.hidden_size,
-            #               class_dim=args.num_classes,
-            #               dropout=args.dropout)
-            model = H2GCN_EGO(in_channels=data.num_features, hidden_channels=args.hidden_size,
-                              out_channels=args.num_classes, dropout=args.dropout,
-                              num_layers=args.num_layers)
+            model = H2GCN(data=data,
+                          num_features=data.num_features,
+                          num_hidden=args.hidden_size,
+                          num_classes=args.num_classes,
+                          dropout=args.dropout,
+                          device=args.device)
+            # model = H2GCN_EGO(in_channels=data.num_features, hidden_channels=args.hidden_size,
+            #                   out_channels=args.num_classes, dropout=args.dropout,
+            #                   num_layers=args.num_layers)
         case "mlp":
             model = MLP(in_channels=data.num_features,
                         hidden_channels=args.hidden_size,
@@ -116,7 +119,7 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
             model = AMNet(in_channels=data.num_features,
                           hid_channels=args.hidden_size,
                           num_class=args.num_classes,
-                          K=7,
+                          K=5,
                           filter_num=2)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")
@@ -127,7 +130,11 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
 
 def _process_data(args: Namespace, data: Data) -> Data:
     if args.dataset == "DGraph" and args.model != "tgat":
-        return data_processing.data_preprocess(data)
+        data_processed = data_processing.data_preprocess(data)
+        # if args.model == "h2gcn":
+        #     data_processed.edge_index = models.h2gcn.utils.edge_index_to_sp(
+        #         len(data.x), data_processed.edge_index, device=args.device)
+        return data_processed
 
     if args.dataset == "Yelp":
         return data_processing.process_yelpchi(data)
