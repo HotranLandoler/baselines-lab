@@ -1,6 +1,6 @@
 # Basic configs
-model = "h2gcn"
-dataset = "Yelp"
+model = "tgat"
+dataset = "DGraph"
 device = "cuda:0"
 
 hidden_size = 64

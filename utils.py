@@ -59,11 +59,7 @@ def set_random_seed(seed: int):
 
 
 def _prepare_data(args: Namespace) -> Data:
-    if args.model in ["tgat", "amnet", "h2gcn"]:
-        # dataset_transform = transforms.OneHotDegree(max_degree=10)
-        dataset_transform = None
-    else:
-        dataset_transform = transforms.Compose([transforms.ToSparseTensor()])
+    dataset_transform = None
 
     match args.dataset:
         case "DGraph":
@@ -129,22 +125,12 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
 
 
 def _process_data(args: Namespace, data: Data) -> Data:
-    if args.dataset == "DGraph" and args.model != "tgat":
-        data_processed = data_processing.data_preprocess(data)
-        # if args.model == "h2gcn":
-        #     data_processed.edge_index = models.h2gcn.utils.edge_index_to_sp(
-        #         len(data.x), data_processed.edge_index, device=args.device)
-        return data_processed
-
-    if args.dataset == "Yelp":
-        return data_processing.process_yelpchi(data)
-
-    # TODO
-    if args.dataset == "Wikipedia":
-        return data_processing.process_tgat_data(args.dataset, data)
-
-    match args.model:
-        case "tgat":
-            return data_processing.process_tgat_data(args.dataset, data)
+    match args.dataset:
+        case "DGraph":
+            return data_processing.process_dgraph(data)
+        case "Yelp":
+            return data_processing.process_yelpchi(data)
+        case "Wikipedia":
+            return data_processing.process_jodie(data)
         case _:
             return data

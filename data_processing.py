@@ -18,7 +18,7 @@ RAW_DIR = "raw"
 PROCESSED_DIR = "processed"
 
 
-def get_cora(transform: BaseTransform) -> Data:
+def get_cora(transform: BaseTransform | None) -> Data:
     """Get the Cora dataset."""
     dataset = Planetoid(root=DATA_ROOT,
                         name="Cora",
@@ -27,7 +27,7 @@ def get_cora(transform: BaseTransform) -> Data:
 
 
 def get_jodie(name: Literal["Reddit", "Wikipedia"],
-              transform: BaseTransform) -> TemporalData:
+              transform: BaseTransform | None) -> TemporalData:
     """Get the JODIE(Reddit or Wiki) dataset."""
     dataset = JODIEDataset(root=DATA_ROOT,
                            name=name,
@@ -35,53 +35,24 @@ def get_jodie(name: Literal["Reddit", "Wikipedia"],
     return dataset[0]
 
 
-def data_preprocess(data: Data) -> Data:
+def process_dgraph(data: Data, max_time_steps=32) -> Data:
     """Perform pre-processing on dataset before training.
 
-    - To Undirected Graph
     - Normalize features(x)
-    - Reshape y
+    - To Undirected Graph
     """
-    # To undirected
-    if hasattr(data, "adj_t"):
-        data.adj_t = data.adj_t.to_symmetric()
-    else:
-        data.edge_index, data.edge_weight = torch_geometric.utils.to_undirected(
-            data.edge_index, data.edge_weight)
-    # Normalization
-    x: Tensor = data.x
-    x = (x - x.mean(0)) / x.std(0)
-    data.x = x
-    # Reshape y
-    if data.y.dim() == 2:
-        data.y = data.y.squeeze(1)
-
-    return data
-
-
-def process_tgat_data(dataset: Literal["DGraph", "Wikipedia"],
-                      data: Data | TemporalData):
-    """https://github.com/hxttkl/DGraph_Experiments"""
-    match dataset:
-        case "DGraph":
-            return _process_dgraph_for_tgat(data)
-        case "Wikipedia":
-            return _process_jodie_for_tgat(data)
-        case _:
-            raise NotImplementedError(f"Processing for tgat data {dataset} not implemented")
-
-
-def _process_dgraph_for_tgat(data: Data, max_time_steps=32) -> Data:
     # Normalization
     x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)
     data.x = x
 
+    # Get Edge-time
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
     data.edge_time = data.edge_time / data.edge_time.max()
     data.edge_time = (data.edge_time * max_time_steps).long()
     data.edge_time = data.edge_time.view(-1, 1).float()
 
+    # Get Node-time
     edge_index_reshaped = torch.stack((data.edge_index[0],
                                        data.edge_index[1]))
     edge = torch.cat([edge_index_reshaped, data.edge_time.view(1, -1)], dim=0)  # process node time
@@ -93,6 +64,7 @@ def _process_dgraph_for_tgat(data: Data, max_time_steps=32) -> Data:
     node_time = np.array(list(key.values()))
     data.node_time = torch.tensor(node_time)
 
+    # Get Node-out-degree
     data.node_out_degree = torch_geometric.utils.degree(
         data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
 
@@ -103,7 +75,7 @@ def _process_dgraph_for_tgat(data: Data, max_time_steps=32) -> Data:
     return data
 
 
-def _process_jodie_for_tgat(data: TemporalData) -> Data:
+def process_jodie(data: TemporalData) -> Data:
     x = torch.zeros((data.num_nodes, data.msg.shape[1]))
     # x = torch.arange(0, data.num_nodes, dtype=torch.float).reshape(-1, 1)
     edge_index = torch.stack((data.src, data.dst))
