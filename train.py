@@ -63,7 +63,16 @@ def _train_run(run: int,
     total_epochs = args.epochs
 
     model.reset_parameters()
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+    if args.model == "amnet":
+        optimizer = torch.optim.Adam([
+            dict(params=model.filters.parameters(), lr=5e-2),
+            dict(params=model.lin, lr=args.lr, weight_decay=args.weight_decay),
+            dict(params=model.attn, lr=args.lr, weight_decay=args.weight_decay)]
+        )
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
     # For AMNet
@@ -119,7 +128,7 @@ def _train_epoch(model: torch.nn.Module,
     if args.model == "amnet":
         output, bias_loss = model(data.x, edge_index,
                                   label=(anomaly_label, normal_label))
-        beta = 0.3
+        beta = 1.0
         loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
                 bias_loss * beta)
     else:

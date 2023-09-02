@@ -69,7 +69,8 @@ def _prepare_data(args: Namespace) -> Data:
         case "Reddit" | "Wikipedia":
             data = data_processing.get_jodie(args.dataset, transform=dataset_transform)
         case "Yelp":
-            data = datasets.YelpChiDataset(transform=dataset_transform)[0]
+            # data = datasets.YelpChiDataset(transform=dataset_transform)[0]
+            data = data_processing.get_yelp()
         case _:
             raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
@@ -96,15 +97,15 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                                hidden_num=args.hidden_size,
                                output_num=args.num_classes)
         case "h2gcn":
-            # model = H2GCN(data=data,
-            #               num_features=data.num_features,
-            #               num_hidden=args.hidden_size,
-            #               num_classes=args.num_classes,
-            #               dropout=args.dropout,
-            #               device=args.device)
-            model = H2GCN_EGO(in_channels=data.num_features, hidden_channels=args.hidden_size,
-                              out_channels=args.num_classes, dropout=args.dropout,
-                              num_layers=args.num_layers)
+            model = H2GCN(data=data,
+                          num_features=data.num_features,
+                          num_hidden=args.hidden_size,
+                          num_classes=args.num_classes,
+                          dropout=args.dropout,
+                          device=args.device)
+            # model = H2GCN_EGO(in_channels=data.num_features, hidden_channels=args.hidden_size,
+            #                   out_channels=args.num_classes, dropout=args.dropout,
+            #                   num_layers=args.num_layers)
         case "mlp":
             model = MLP(in_channels=data.num_features,
                         hidden_channels=args.hidden_size,

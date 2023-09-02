@@ -1,6 +1,6 @@
 # Basic configs
-model = "tgat"
-dataset = "DGraph"
+model = "amnet"
+dataset = "Yelp"
 device = "cuda:0"
 
 hidden_size = 64
@@ -9,7 +9,7 @@ dropout = 0.0
 random_seed = 0
 
 # Learning rate
-lr = 0.01
+lr = 5e-4
 
 # Drop Message rate
 drop_rate = 0.25
@@ -37,7 +37,7 @@ loss_weight = 50
 
 [datasets.Yelp]
 num_classes = 2
-loss_weight = 50
+loss_weight = 1
 
 # Model configs
 
@@ -71,4 +71,4 @@ weight_decay = 0e-4
 
 [models.amnet]
 # AMNet
-weight_decay = 0e-4
+weight_decay = 1e-5

@@ -46,6 +46,6 @@ def edge_index_to_sparse_tensor_adj(edge_index):
 def gcn_norm(edge_index, num_nodes, device):
     a1 = edge_index_to_sparse_tensor_adj(edge_index).to(device)
     d1_adj = torch.diag(pyg_utils.degree(edge_index[0], num_nodes=num_nodes)).to_sparse()
-    d1_adj = torch.pow(d1_adj, -0.5)
+    d1_adj = torch.pow(d1_adj, -0.5).to(device)
 
     return torch.sparse.mm(torch.sparse.mm(d1_adj, a1), d1_adj)
