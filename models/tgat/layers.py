@@ -11,7 +11,7 @@ from torch_geometric.typing import OptTensor
 
 class TimeEncode(torch.nn.Module):
     # https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs
-    def __init__(self, expand_dim: int, factor=5):
+    def __init__(self, expand_dim: int, factor=5, is_fixed=False):
         super(TimeEncode, self).__init__()
         # init_len = np.array([1e8**(i/(time_dim-1)) for i in range(time_dim)])
 
@@ -20,10 +20,11 @@ class TimeEncode(torch.nn.Module):
         self.basis_freq = torch.nn.Parameter((torch.from_numpy(1 / 10 ** np.linspace(0, 9, time_dim))).float())
         self.phase = torch.nn.Parameter(torch.zeros(time_dim).float())
 
-        # self.dense = torch.nn.Linear(time_dim, expand_dim, bias=False)#
+        if is_fixed:
+            self.basis_freq.requires_grad = False
+            self.phase.requires_grad = False
 
-        # torch.nn.init.xavier_normal_(self.dense.weight)
-
+    # @torch.no_grad()
     def forward(self, ts: Tensor) -> Tensor:
         # ts: [N, L]
         batch_size = ts.size(0)

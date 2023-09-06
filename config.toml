@@ -1,6 +1,6 @@
 # Basic configs
 model = "tgat"
-dataset = "Yelp"
+dataset = "DGraph"
 device = "cuda:0"
 
 hidden_size = 64
