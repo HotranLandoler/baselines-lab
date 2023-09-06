@@ -412,3 +412,23 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=
 AUC: [0.7857011556625366, 0.7710045576095581, 0.7858210206031799]
 AP: [0.6696462631225586, 0.6537811756134033, 0.66927570104599]
 Final AUC: 0.7808 ± 0.0085, Final AP: 0.6642 ± 0.0091,
+
+#------------Set Yelp loss weight to 1----------
+
+[2023-09-06 16:33:30]
+Model: TGAT
+Dataset: Yelp
+Note: D-TGAT
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=1, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.844002902507782, 0.8660218715667725, 0.8633625507354736]
+AP: [0.764567494392395, 0.7889097929000854, 0.7840402722358704]
+Final AUC: 0.8578 ± 0.0120, Final AP: 0.7792 ± 0.0129,
+
+[2023-09-06 16:45:26]
+Model: TGAT
+Dataset: Yelp
+Note: Original
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=1, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=40, log_path='./logs.txt')
+AUC: [0.8333085775375366, 0.8273022770881653, 0.8269085884094238]
+AP: [0.7539227604866028, 0.7483615875244141, 0.7468105554580688]
+Final AUC: 0.8292 ± 0.0036, Final AP: 0.7497 ± 0.0037,

@@ -1,5 +1,5 @@
 # Basic configs
-model = "amnet"
+model = "tgat"
 dataset = "Yelp"
 device = "cuda:0"
 
@@ -9,7 +9,7 @@ dropout = 0.0
 random_seed = 0
 
 # Learning rate
-lr = 5e-4
+lr = 0.01
 
 # Drop Message rate
 drop_rate = 0.25
@@ -17,7 +17,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP"]
 
 use_early_stopping = true
-early_stopping_patience = 20
+early_stopping_patience = 40
 
 log_path = "./logs.txt"
 
