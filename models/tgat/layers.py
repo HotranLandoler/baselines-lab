@@ -58,7 +58,8 @@ class MlpDropTransformerConv(TransformerConv):
                          dropout=dropout,
                          edge_dim=edge_dim)
         self.pre_transform_linear = Linear(out_channels, hidden_channels)
-        self.mlp = Linear(3 * hidden_channels, 1)
+        self.mlp = Linear(3 * hidden_channels, hidden_channels)
+        self.mlp2 = Linear(hidden_channels, 1)
 
     def message(self, query_i: Tensor, key_j: Tensor, value_j: Tensor,
                 edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
@@ -72,12 +73,15 @@ class MlpDropTransformerConv(TransformerConv):
         diff = x_i_transformed - x_j_transformed
         x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=-1)
         drop_rate = self.mlp(x_cat)
-        # drop_rate = torch.nn.functional.sigmoid(drop_rate)
+        drop_rate = self.mlp2(drop_rate)
+
+        drop_rate = torch.nn.functional.sigmoid(drop_rate)
 
         # drop_rate = torch.nn.functional.relu(drop_rate)
         # drop_rate = torch.exp(-drop_rate)
 
-        drop_rate = pyg_utils.softmax(drop_rate, index, ptr, size_i)
+        # drop_rate = pyg_utils.softmax(drop_rate, index, ptr, size_i)
+
         print(f"drop rate[0]: {drop_rate[0][0].item()}")
 
         out = _multi_dropout(out, probability=drop_rate)

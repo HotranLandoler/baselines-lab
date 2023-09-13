@@ -432,3 +432,39 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=
 AUC: [0.8333085775375366, 0.8273022770881653, 0.8269085884094238]
 AP: [0.7539227604866028, 0.7483615875244141, 0.7468105554580688]
 Final AUC: 0.8292 ± 0.0036, Final AP: 0.7497 ± 0.0037,
+
+[2023-09-13 15:56:50]
+Model: TGAT
+Dataset: DGraph
+Note: D-TGAT-Drop(Sigmoid)
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8031065464019775, 0.8075718879699707, 0.8045960664749146]
+AP: [0.520797073841095, 0.5221653580665588, 0.5214935541152954]
+Final AUC: 0.8051 ± 0.0023, Final AP: 0.5215 ± 0.0007,
+
+[2023-09-13 16:01:02]
+Model: TGAT
+Dataset: Yelp
+Note: D-TGAT-Drop(Sigmoid)
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=1, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.7876626253128052, 0.8013302087783813, 0.8404792547225952]
+AP: [0.6830393671989441, 0.7079450488090515, 0.7655236124992371]
+Final AUC: 0.8098 ± 0.0274, Final AP: 0.7188 ± 0.0423,
+
+[2023-09-13 16:27:41]
+Model: TGAT
+Dataset: Yelp
+Note: D-TGAT-Drop + 2-layer MLP
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=1, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8510262966156006, 0.806014358997345, 0.8578751087188721]
+AP: [0.7615824937820435, 0.7147563695907593, 0.7771930694580078]
+Final AUC: 0.8383 ± 0.0282, Final AP: 0.7512 ± 0.0325,
+
+[2023-09-13 16:31:17]
+Model: TGAT
+Dataset: DGraph
+Note: D-TGAT-Drop + 2-layer MLP
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=20, log_path='./logs.txt')
+AUC: [0.8071500062942505, 0.8077638149261475, 0.8072420954704285]
+AP: [0.5213794708251953, 0.5220113396644592, 0.5217781662940979]
+Final AUC: 0.8074 ± 0.0003, Final AP: 0.5217 ± 0.0003,
