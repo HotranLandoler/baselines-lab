@@ -11,7 +11,7 @@ from models.tgat.layers import TimeEncode, MlpDropTransformerConv
 class TGAT(torch.nn.Module):
     """https://github.com/hxttkl/DGraph_Experiments"""
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32,
-                 drop=True):
+                 drop=False):
         super().__init__()
         self.time_enc = TimeEncode(32)
         self.degree_enc = TimeEncode(32)
@@ -33,17 +33,24 @@ class TGAT(torch.nn.Module):
         # self.lin_degree1 = torch.nn.Linear(8, 4)
         self.lin_combine = torch.nn.Linear(32 + 8, 32)
 
+        self.lin_interval = torch.nn.Linear(1, 8)
+
         self.lin_intermediate_results = torch.nn.Linear(32 * 2, 32)
 
         self.lin_edge_attr = torch.nn.Linear(32 + 172, 32)
 
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
-                encode_degree=True, **kwargs):
+                encode_degree=True, encode_interval=True, **kwargs):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
         h1 = self.lin(data.x)
         h1 = F.relu(h1)
+
+        if encode_interval:
+            interval_enc = self.lin_interval(data.node_mean_out_time_interval)
+            interval_enc = F.relu(interval_enc)
+            h1 = self.lin_combine(torch.concat((h1, interval_enc), dim=1))
 
         if encode_degree:
             # rel_out_degree = (data.node_out_degree[data.edge_index[0]] -
@@ -84,5 +91,7 @@ class TGAT(torch.nn.Module):
         self.lin_degree.reset_parameters()
         # self.lin_degree1.reset_parameters()
         self.lin_combine.reset_parameters()
+
+        self.lin_interval.reset_parameters()
 
         self.lin_intermediate_results.reset_parameters()

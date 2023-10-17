@@ -42,9 +42,10 @@ def get_yelp() -> Data:
 
 
 def process_dgraph(data: Data, max_time_steps=32) -> Data:
-    """Perform pre-processing on dataset before training.
+    """Perform pre-processing on DGraph before training.
 
     - Normalize features(x)
+    - Set edge-time, node-time, node-out-degree, mean-node-out-time-interval
     - To Undirected Graph
     """
     # Normalization
@@ -73,6 +74,16 @@ def process_dgraph(data: Data, max_time_steps=32) -> Data:
     # Get Node-out-degree
     data.node_out_degree = torch_geometric.utils.degree(
         data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+
+    # Get average node-out-time-interval
+    node_out_times = pd.DataFrame(
+        np.concatenate(
+            (data.edge_index[0].reshape(-1, 1), data.edge_time.int().reshape(-1, 1)), axis=-1),
+        columns=["node_out", "time"])
+    edge_mean_out_time_interval = node_out_times.groupby("node_out").agg(_get_mean_out_time_interval)
+    node_mean_out_time_interval = np.zeros(data.num_nodes)
+    node_mean_out_time_interval[edge_mean_out_time_interval.index] = edge_mean_out_time_interval.values.flatten()
+    data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1), dtype=data.edge_time.dtype)
 
     # trans to undirected graph
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
@@ -171,3 +182,8 @@ def process_yelpchi(data: Data, train_ratio=0.4, test_ratio=0.67) -> Data:
 
     return data
 
+
+def _get_mean_out_time_interval(series: pd.core.series.Series) -> pd.core.series.Series:
+    if series.shape[0] <= 1:
+        return 0
+    return np.diff(np.sort(series)).mean()

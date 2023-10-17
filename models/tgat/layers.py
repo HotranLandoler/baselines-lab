@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import torch_geometric.utils as pyg_utils
 from torch import Tensor
-from torch.nn import Linear
+from torch.nn import Linear, Sequential, LayerNorm, GELU, Dropout
 from torch_geometric.nn import TransformerConv
 from torch_geometric.typing import OptTensor
 
@@ -58,8 +58,14 @@ class MlpDropTransformerConv(TransformerConv):
                          dropout=dropout,
                          edge_dim=edge_dim)
         self.pre_transform_linear = Linear(out_channels, hidden_channels)
+        self.pre_transform_linear2 = Linear(out_channels, hidden_channels)
         self.mlp = Linear(3 * hidden_channels, hidden_channels)
         self.mlp2 = Linear(hidden_channels, 1)
+        # self.sb = Sequential(Linear(3 * hidden_channels, hidden_channels),
+        #                      GELU(),
+        #                      Dropout(p=0.1),
+        #                      # LayerNorm(hidden_channels),
+        #                      Linear(hidden_channels, 1))
 
     def message(self, query_i: Tensor, key_j: Tensor, value_j: Tensor,
                 edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
@@ -69,13 +75,27 @@ class MlpDropTransformerConv(TransformerConv):
             return out * (1.0 - self.drop_rate)
 
         x_i_transformed = self.pre_transform_linear(query_i)
-        x_j_transformed = self.pre_transform_linear(key_j)
-        diff = x_i_transformed - x_j_transformed
-        x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=-1)
-        drop_rate = self.mlp(x_cat)
-        drop_rate = self.mlp2(drop_rate)
+        x_i_transformed = torch.nn.functional.tanh(x_i_transformed)
+        x_j_transformed = self.pre_transform_linear2(key_j)
+        x_j_transformed = torch.nn.functional.tanh(x_j_transformed)
+        # diff = x_i_transformed - x_j_transformed
+        # diff = (x_i_transformed * x_j_transformed).sum(-1, keepdims=True)
+        # diff = self.pre_transform_linear(query_i * key_j)
+        # x_cat = torch.cat([x_i_transformed, x_j_transformed, diff], dim=-1)
+        cos_similarity = torch.cosine_similarity(
+            x_i_transformed,
+            x_j_transformed,
+            dim=-1).view(-1, self.heads, 1)
+        drop_rate = torch.nn.functional.relu(-cos_similarity)
 
-        drop_rate = torch.nn.functional.sigmoid(drop_rate)
+        # drop_rate = self.mlp2(cos_similarity)
+        # drop_rate = self.mlp(cos_similarity)
+        # drop_rate = torch.nn.functional.relu(drop_rate)
+        # drop_rate = self.mlp2(drop_rate)
+
+        # drop_rate = self.sb(x_cat)
+
+        # drop_rate = torch.nn.functional.sigmoid(drop_rate)
 
         # drop_rate = torch.nn.functional.relu(drop_rate)
         # drop_rate = torch.exp(-drop_rate)
