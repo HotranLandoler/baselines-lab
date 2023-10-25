@@ -39,6 +39,34 @@ class TimeEncode(torch.nn.Module):
         return harmonic  # self.dense(harmonic)
 
 
+class TemporalFrequencyEncoder(torch.nn.Module):
+    def __init__(self, expand_dim: int):
+        super().__init__()
+        self.linear = Linear(1, expand_dim)
+
+    def forward(self, temporal_frequencies: Tensor) -> Tensor:
+        temporal_frequencies_enc = self.linear(temporal_frequencies)
+        temporal_frequencies_enc = torch.nn.functional.relu(temporal_frequencies_enc)
+        return temporal_frequencies_enc
+
+    def reset_parameters(self):
+        self.linear.reset_parameters()
+
+
+class DegreeEncoder(torch.nn.Module):
+    def __init__(self, expand_dim: int):
+        super().__init__()
+        self.linear = Linear(1, expand_dim)
+
+    def forward(self, degrees: Tensor) -> Tensor:
+        degrees_enc = self.linear(degrees)
+        degrees_enc = torch.nn.functional.relu(degrees_enc)
+        return degrees_enc
+
+    def reset_parameters(self):
+        self.linear.reset_parameters()
+
+
 class MlpDropTransformerConv(TransformerConv):
     drop_rate: Tensor | None
     pre_transform_linear: Linear
@@ -57,8 +85,8 @@ class MlpDropTransformerConv(TransformerConv):
                          heads=heads,
                          dropout=dropout,
                          edge_dim=edge_dim)
+        self.drop_rate = None
         self.pre_transform_linear = Linear(out_channels, hidden_channels)
-        self.pre_transform_linear2 = Linear(out_channels, hidden_channels)
         self.mlp = Linear(3 * hidden_channels, hidden_channels)
         self.mlp2 = Linear(hidden_channels, 1)
         # self.sb = Sequential(Linear(3 * hidden_channels, hidden_channels),
@@ -74,10 +102,12 @@ class MlpDropTransformerConv(TransformerConv):
         if not self.training:
             return out * (1.0 - self.drop_rate)
 
+        # if self.drop_rate is None:
         x_i_transformed = self.pre_transform_linear(query_i)
-        x_i_transformed = torch.nn.functional.tanh(x_i_transformed)
-        x_j_transformed = self.pre_transform_linear2(key_j)
-        x_j_transformed = torch.nn.functional.tanh(x_j_transformed)
+        # x_i_transformed = torch.nn.functional.tanh(x_i_transformed)
+        x_j_transformed = self.pre_transform_linear(key_j)
+        # x_j_transformed = torch.nn.functional.tanh(x_j_transformed)
+
         # diff = x_i_transformed - x_j_transformed
         # diff = (x_i_transformed * x_j_transformed).sum(-1, keepdims=True)
         # diff = self.pre_transform_linear(query_i * key_j)
@@ -85,7 +115,7 @@ class MlpDropTransformerConv(TransformerConv):
         cos_similarity = torch.cosine_similarity(
             x_i_transformed,
             x_j_transformed,
-            dim=-1).view(-1, self.heads, 1)
+            dim=-1).reshape(-1, self.heads, 1)
         drop_rate = torch.nn.functional.relu(-cos_similarity)
 
         # drop_rate = self.mlp2(cos_similarity)
@@ -101,16 +131,13 @@ class MlpDropTransformerConv(TransformerConv):
         # drop_rate = torch.exp(-drop_rate)
 
         # drop_rate = pyg_utils.softmax(drop_rate, index, ptr, size_i)
+        self.drop_rate = drop_rate.detach()
 
-        print(f"drop rate[0]: {drop_rate[0][0].item()}")
+        print(f"drop rate[0]: {self.drop_rate[0][0].item()}")
 
-        out = _multi_dropout(out, probability=drop_rate)
-        self.drop_rate = drop_rate
+        # out = _multi_dropout(out, probability=self.drop_rate)
+        out = _drop_edge_by_rate(out, drop_rate=self.drop_rate)
 
-        # cos_similarity = torch.cosine_similarity(
-        #     query_i,
-        #     key_j,
-        #     dim=-1).view(-1, self.heads, 1)
         # out = _drop_edge(out, cos_similarity)
 
         return out
@@ -125,6 +152,11 @@ class MlpDropTransformerConv(TransformerConv):
 
 def _drop_edge(message: Tensor, similarity: Tensor, threshold=0.1) -> Tensor:
     mask: Tensor = similarity >= threshold
+    return mask * message
+
+
+def _drop_edge_by_rate(message: Tensor, drop_rate: Tensor) -> Tensor:
+    mask: Tensor = drop_rate <= 0.
     return mask * message
 
 
