@@ -5,13 +5,14 @@ from torch_geometric.data import Data
 from torch_geometric.nn import TransformerConv
 from torch_sparse import SparseTensor
 
-from models.tgat.layers import TimeEncode, DegreeEncoder, TemporalFrequencyEncoder, MlpDropTransformerConv
+from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEncoder, MlpDropTransformerConv,
+                                MutualAttention, MutualAttentionSingleFactor, UnifiedAttention)
 
 
 class TGAT(torch.nn.Module):
     """https://github.com/hxttkl/DGraph_Experiments"""
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32,
-                 drop=True):
+                 drop=False):
         super().__init__()
         hid_channels = 32
         encoding_dim = 8
@@ -20,6 +21,10 @@ class TGAT(torch.nn.Module):
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
+        self.mutual_attn = MutualAttentionSingleFactor()
+        # self.mutual_attn = MutualAttention(encoding_dim)
+        self.unified_attn = UnifiedAttention(encoding_dim)
+
         self.w_enc = torch.nn.Linear(encoding_dim, encoding_dim)
         self.w_x = torch.nn.Linear(hid_channels, encoding_dim)
 
@@ -38,11 +43,12 @@ class TGAT(torch.nn.Module):
                                      dropout=0.1, edge_dim=edge_dim)
         self.out = torch.nn.Linear(32, out_channels)
 
-        # self.lin_degree = torch.nn.Linear(1, 8)
+        self.lin_degree = torch.nn.Linear(8, 8)
         # self.lin_degree1 = torch.nn.Linear(8, 4)
-        self.lin_combine = torch.nn.Linear(32 + 8, 32)
+        self.lin_combine = torch.nn.Linear(32 + encoding_dim, 32)
+        # self.lin_diff = torch.nn.Linear(8, 8)
 
-        # self.lin_interval = torch.nn.Linear(1, 8)
+        self.lin_interval = torch.nn.Linear(8, 8)
         #
         # self.lin_intermediate_results = torch.nn.Linear(32 * 2, 32)
 
@@ -54,7 +60,7 @@ class TGAT(torch.nn.Module):
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
         h1 = self.lin(data.x)
-        # h1 = F.relu(h1)
+        h1 = F.relu(h1)
 
         if encode_interval:
             temporal_frequency_enc = self.temporal_frequency_enc(
@@ -70,6 +76,12 @@ class TGAT(torch.nn.Module):
             # degree_enc = self.lin_degree(data.node_out_degree)
             # degree_enc = F.relu(degree_enc)
             # h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
+
+        # temporal_frequency_enc, degree_enc = self.mutual_attn(temporal_frequency_enc, degree_enc)
+        # temporal_frequency_enc, degree_enc = self.unified_attn(temporal_frequency_enc, degree_enc)
+        # diff = temporal_frequency_enc - degree_enc
+
+        # context = self.lin_interval(temporal_frequency_enc) + self.lin_degree(degree_enc)
 
         encodings = torch.stack((temporal_frequency_enc, degree_enc), dim=1)
         encodings_proj = self.attention_act(self.w_enc(encodings))

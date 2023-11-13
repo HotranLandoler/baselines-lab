@@ -25,9 +25,9 @@ def main():
     evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
     logger = Logger(settings=args)
 
-    print(model)
-    for name, p in model.named_parameters():
-        print(name, ' :', p.shape)
+    # print(model)
+    # for name, p in model.named_parameters():
+    #     print(name, ' :', p.shape)
     print(f"Train started with setting {args}")
 
     edge_index = data.adj_t if hasattr(data, "adj_t") else data.edge_index

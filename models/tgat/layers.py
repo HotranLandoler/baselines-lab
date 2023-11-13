@@ -59,12 +59,88 @@ class DegreeEncoder(torch.nn.Module):
         self.linear = Linear(1, expand_dim)
 
     def forward(self, degrees: Tensor) -> Tensor:
+        degrees = self._degree_kernel(degrees)
         degrees_enc = self.linear(degrees)
         degrees_enc = torch.nn.functional.relu(degrees_enc)
         return degrees_enc
 
     def reset_parameters(self):
         self.linear.reset_parameters()
+
+    @staticmethod
+    def _degree_kernel(degrees: Tensor, a=0.5, b=0.0) -> Tensor:
+        return 1.0 / (1.0 + (torch.exp(-a * degrees) + b))
+
+
+class MutualAttention(torch.nn.Module):
+    def __init__(self, encoding_dim: int):
+        super().__init__()
+        self.attn_weight = torch.nn.Parameter(torch.empty(encoding_dim, encoding_dim))
+        self.reset_parameters()
+
+    def forward(self, p: Tensor, q: Tensor) -> (Tensor, Tensor):
+        p_a_q = torch.bmm((p @ self.attn_weight).unsqueeze(-1), q.unsqueeze(1))
+        p_a_q = torch.nn.functional.tanh(p_a_q)
+        attn_p = torch.nn.functional.softmax(p_a_q.mean(-1), dim=-1)
+        attn_q = torch.nn.functional.softmax(p_a_q.mean(1), dim=-1)
+        return p * attn_p, q * attn_q
+
+    def reset_parameters(self):
+        torch.nn.init.kaiming_uniform_(self.attn_weight, a=math.sqrt(5))
+
+
+class MutualAttentionSingleFactor(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.attn_weight = torch.nn.Parameter(torch.randn(size=[1]))
+        self.reset_parameters()
+
+    def forward(self, p: Tensor, q: Tensor) -> (Tensor, Tensor):
+        p_a_q = torch.bmm((p.unsqueeze(-1) @ self.attn_weight).unsqueeze(-1), q.unsqueeze(1))
+        p_a_q = torch.nn.functional.tanh(p_a_q)
+        attn_p = torch.nn.functional.softmax(p_a_q.mean(-1), dim=-1)
+        attn_q = torch.nn.functional.softmax(p_a_q.mean(1), dim=-1)
+        # print(f"Weight: {self.attn_weight.item()}")
+        return p * attn_p, q * attn_q
+
+    def reset_parameters(self):
+        pass
+
+
+class UnifiedAttention(torch.nn.Module):
+    def __init__(self, encoding_dim: int):
+        super().__init__()
+        self.encoding_dim = encoding_dim
+
+        self.linear_q = Linear(2 * encoding_dim, 2 * encoding_dim)
+        self.linear_k = Linear(2 * encoding_dim, 2 * encoding_dim)
+        self.linear_v = Linear(2 * encoding_dim, 2 * encoding_dim)
+
+        self.linear_qk = Linear(2 * encoding_dim, 2 * encoding_dim)
+        self.linear_m = Linear(2 * encoding_dim, 2)
+
+        self.linear_out = Linear(2 * encoding_dim, 2 * encoding_dim)
+        self.reset_parameters()
+
+    def forward(self, x: Tensor, y: Tensor) -> (Tensor, Tensor):
+        z = torch.cat((x, y), dim=1)
+        q = self.linear_q(z)
+        k = self.linear_k(z)
+        v = self.linear_v(z)
+        gsa = v @ self._bgdp(q, k) + z
+        z = self.linear_out(gsa)
+        return (z[:, :self.encoding_dim],
+                z[:, self.encoding_dim:])
+
+    def _bgdp(self, q: Tensor, k: Tensor) -> Tensor:
+        # m = self.linear_m(self.linear_qk(q) * self.linear_qk(k))
+        # m = torch.nn.functional.sigmoid(m)
+        # out = (q * m[:, [0]]).T @ (k * m[:, [1]]) / math.sqrt(self.encoding_dim)
+        out = q.T @ k / math.sqrt(self.encoding_dim)
+        return torch.nn.functional.softmax(out)
+
+    def reset_parameters(self):
+        pass
 
 
 class MlpDropTransformerConv(TransformerConv):
@@ -135,8 +211,8 @@ class MlpDropTransformerConv(TransformerConv):
 
         print(f"drop rate[0]: {self.drop_rate[0][0].item()}")
 
-        # out = _multi_dropout(out, probability=self.drop_rate)
-        out = _drop_edge_by_rate(out, drop_rate=self.drop_rate)
+        out = _multi_dropout(out, probability=self.drop_rate)
+        # out = _drop_edge_by_rate(out, drop_rate=self.drop_rate)
 
         # out = _drop_edge(out, cos_similarity)
 
