@@ -134,9 +134,12 @@ def _train_epoch(model: torch.nn.Module,
         loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
                 bias_loss * beta)
     else:
+        # output, label_scores = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                              weight=loss_weight)
+        # label_loss_factor = 0.0
+        # loss += label_loss_factor * func.cross_entropy(label_scores[data.train_mask], data.y[data.train_mask])
 
     loss.backward()
 

@@ -12,7 +12,7 @@ from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEnco
 class TGAT(torch.nn.Module):
     """https://github.com/hxttkl/DGraph_Experiments"""
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32,
-                 drop=False):
+                 drop=True):
         super().__init__()
         hid_channels = 32
         encoding_dim = 8
@@ -49,8 +49,6 @@ class TGAT(torch.nn.Module):
         # self.lin_diff = torch.nn.Linear(8, 8)
 
         self.lin_interval = torch.nn.Linear(8, 8)
-        #
-        # self.lin_intermediate_results = torch.nn.Linear(32 * 2, 32)
 
         self.lin_edge_attr = torch.nn.Linear(32 + 172, 32)
 
@@ -62,20 +60,15 @@ class TGAT(torch.nn.Module):
         h1 = self.lin(data.x)
         h1 = F.relu(h1)
 
+        # h1, label_scores = self.conv(h1, data.edge_index, rel_t_enc)
+        h1 = self.conv(h1, data.edge_index, rel_t_enc)
+
         if encode_interval:
             temporal_frequency_enc = self.temporal_frequency_enc(
                 data.node_mean_out_time_interval)
 
-            # interval_enc = self.lin_interval(data.node_mean_out_time_interval)
-            # interval_enc = F.relu(interval_enc)
-            # h1 = self.lin_combine(torch.concat((h1, interval_enc), dim=1))
-
         if encode_degree:
             degree_enc = self.degree_enc(data.node_out_degree)
-
-            # degree_enc = self.lin_degree(data.node_out_degree)
-            # degree_enc = F.relu(degree_enc)
-            # h1 = self.lin_combine(torch.concat((h1, degree_enc), dim=1))
 
         # temporal_frequency_enc, degree_enc = self.mutual_attn(temporal_frequency_enc, degree_enc)
         # temporal_frequency_enc, degree_enc = self.unified_attn(temporal_frequency_enc, degree_enc)
@@ -100,18 +93,13 @@ class TGAT(torch.nn.Module):
         #                                           data.edge_attr.view(-1, 1, 172)), dim=-1))
         # rel_t_enc = torch.cat((rel_t_enc, data.edge_attr.view(-1, 1, 172)), dim=-1)
 
-        h1 = self.conv(h1, data.edge_index, rel_t_enc)
-
-        # Layer 2
-        # intermediate_results = [h1]
-        # h1 = F.relu(h1)
-        # h1 = self.conv1(h1, edge_index, rel_t_enc)
-        # intermediate_results.append(h1)
-        # h1 = torch.cat(intermediate_results, dim=1)
-        # h1 = self.lin_intermediate_results(h1)
-
         out = self.out(h1)
-        return F.log_softmax(out, dim=1)
+        out = F.log_softmax(out, dim=1)
+
+        # if self.training:
+        #     return out, label_scores.squeeze(-1)
+
+        return out
 
     def reset_parameters(self):
         # self.time_enc.reset_parameters()
