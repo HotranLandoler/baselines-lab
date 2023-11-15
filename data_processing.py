@@ -14,6 +14,8 @@ from torch_geometric.data import Data
 from torch_geometric.datasets import Planetoid, JODIEDataset
 from torch_geometric.transforms import BaseTransform
 
+from models.smote import Smote
+
 DATA_ROOT = "./data/"
 RAW_DIR = "raw"
 PROCESSED_DIR = "processed"
@@ -51,7 +53,12 @@ def process_dgraph(data: Data, max_time_steps=32) -> Data:
     # Normalization
     x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)
+
+    # x, y, train_mask = Smote.recon_upsample(x, data.y, data.train_mask)
+
     data.x = x
+    # data.y = y
+    # data.train_mask = train_mask
 
     # Get Edge-time
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time

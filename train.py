@@ -2,16 +2,21 @@ import argparse
 
 import torch
 import torch.nn.functional as func
+import torch_geometric
 from torch import autograd, Tensor
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 
+import models.graph_smote
 import options
 import utils
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
 
+
+encoder = models.graph_smote.SageEncoder(17, 32, 32, 0.0).to("cuda:0")
+decoder = models.graph_smote.Decoder(32, 0.0).to("cuda:0")
 
 def main():
     # Experiment setup
@@ -126,6 +131,8 @@ def _train_epoch(model: torch.nn.Module,
     model.train()
     optimizer.zero_grad()
 
+    # x, y_new, train_mask_new = Smote._recon_upsample(data.x, data.y, data.train_mask)
+
     # with autograd.detect_anomaly():
     if args.model == "amnet":
         output, bias_loss = model(data.x, edge_index,
@@ -134,6 +141,12 @@ def _train_epoch(model: torch.nn.Module,
         loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
                 bias_loss * beta)
     else:
+        h = encoder(data.x, edge_index)
+        adj = torch_geometric.utils.to_scipy_sparse_matrix(edge_index)
+        h, y_new, train_mask_new, adj_up = models.graph_smote.GraphSmote.recon_upsample(h, data.y, data.train_mask,
+                                                                                        adj=adj,
+                                                                                        portion=1.0)
+        generated_G = decoder(h)
         # output, label_scores = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],

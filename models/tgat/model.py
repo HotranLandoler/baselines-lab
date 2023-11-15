@@ -12,7 +12,7 @@ from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEnco
 class TGAT(torch.nn.Module):
     """https://github.com/hxttkl/DGraph_Experiments"""
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32,
-                 drop=True):
+                 drop=False):
         super().__init__()
         hid_channels = 32
         encoding_dim = 8
@@ -57,7 +57,7 @@ class TGAT(torch.nn.Module):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
-        h1 = self.lin(data.x)
+        h1 = self.lin(x)
         h1 = F.relu(h1)
 
         # h1, label_scores = self.conv(h1, data.edge_index, rel_t_enc)
@@ -111,8 +111,4 @@ class TGAT(torch.nn.Module):
         self.degree_enc.reset_parameters()
         self.temporal_frequency_enc.reset_parameters()
 
-        # self.lin_degree.reset_parameters()
-        # self.lin_degree1.reset_parameters()
         self.lin_combine.reset_parameters()
-
-        # self.lin_interval.reset_parameters()
