@@ -12,6 +12,7 @@ import data_processing
 import datasets
 import models.h2gcn.utils
 from models import GCN, DropGCN, MlpDropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet
+from models.dagad import DAGAD
 
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
@@ -112,6 +113,8 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                         out_channels=args.num_classes)
         case "tgat":
             model = TGAT(in_channels=data.num_features, out_channels=args.num_classes)
+        case "dagad":
+            model = DAGAD(data.num_features, 16, 8, args.num_classes, args.device)
         case "amnet":
             model = AMNet(in_channels=data.num_features,
                           hid_channels=args.hidden_size,

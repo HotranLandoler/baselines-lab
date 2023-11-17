@@ -2,21 +2,17 @@ import argparse
 
 import torch
 import torch.nn.functional as func
-import torch_geometric
 from torch import autograd, Tensor
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 
-import models.graph_smote
 import options
 import utils
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
+from models.dagad import GeneralizedCELoss1
 
-
-encoder = models.graph_smote.SageEncoder(17, 32, 32, 0.0).to("cuda:0")
-decoder = models.graph_smote.Decoder(32, 0.0).to("cuda:0")
 
 def main():
     # Experiment setup
@@ -80,19 +76,17 @@ def _train_run(run: int,
     else:
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
+    criterion_gce = GeneralizedCELoss1(q=0.7)
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
-    # For AMNet
-    train_mask_bool = torch.zeros(data.num_nodes, dtype=torch.bool, device=args.device)
-    train_mask_bool[data.train_mask] = True
-    anomaly_label = train_mask_bool & (data.y == 1)
-    normal_label = train_mask_bool & (data.y == 0)
-
     for epoch in range(args.epochs):
+        if epoch % 30 == 0:
+            permute = True
+        else:
+            permute = False
         train_loss = _train_epoch(model, data, edge_index,
-                                  optimizer, args, loss_weight=loss_weight,
-                                  anomaly_label=anomaly_label,
-                                  normal_label=normal_label)
+                                  optimizer, args, criterion_gce, permute,
+                                  loss_weight=loss_weight)
         val_loss = _validate_epoch(model, data, edge_index, args,
                                    loss_weight=loss_weight)
         print(f"Epoch {epoch} finished. "
@@ -108,14 +102,18 @@ def _train_run(run: int,
             break
 
     # Test
-    model.eval()
-    predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-    # result = metric(predicts[dataset.test_mask], dataset.y[dataset.test_mask], num_classes=OUT_FEATS)
-    # logger.add_result(result.item())
-    print(f"Run {run}: ", end='')
-    for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
-        print(result, end='')
-    print("")
+    with torch.no_grad():
+        model.eval()
+        if args.model == "dagad":
+            _, pred_org_b, _, _, data = model(data, permute=False)
+            predicts = pred_org_b
+        else:
+            predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+
+        print(f"Run {run}: ", end='')
+        for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
+            print(result, end='')
+        print("")
 
     return total_epochs
 
@@ -125,28 +123,44 @@ def _train_epoch(model: torch.nn.Module,
                  edge_index: Tensor | SparseTensor,
                  optimizer: torch.optim.Optimizer,
                  args: argparse.Namespace,
-                 loss_weight: torch.Tensor | None,
-                 anomaly_label: Tensor,
-                 normal_label: Tensor) -> float:
+                 criterion_gce: GeneralizedCELoss1,
+                 permute: bool,
+                 loss_weight: torch.Tensor | None) -> float:
     model.train()
     optimizer.zero_grad()
 
-    # x, y_new, train_mask_new = Smote._recon_upsample(data.x, data.y, data.train_mask)
-
     # with autograd.detect_anomaly():
     if args.model == "amnet":
+        train_mask_bool = torch.zeros(data.num_nodes, dtype=torch.bool, device=args.device)
+        train_mask_bool[data.train_mask] = True
+        anomaly_label = train_mask_bool & (data.y == 1)
+        normal_label = train_mask_bool & (data.y == 0)
         output, bias_loss = model(data.x, edge_index,
                                   label=(anomaly_label, normal_label))
         beta = 1.0
         loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
                 bias_loss * beta)
+    elif args.model == "dagad":
+        criterion = func.cross_entropy
+        alpha = 1.5
+        beta = 0.5
+        pred_org_a, pred_org_b, _, pred_aug_bcak_b, data = model(data, permute=permute)
+
+        loss_ce_a = criterion(pred_org_a[data.train_mask], data.y[data.train_mask])
+        loss_ce_b = criterion(pred_org_b[data.train_mask], data.y[data.train_mask])
+        loss_ce_weight = loss_ce_b / (loss_ce_b + loss_ce_a + 1e-8)
+        loss_ce_anm = criterion(pred_org_a[data.train_anm], data.y[data.train_anm])
+        loss_ce_norm = criterion(pred_org_a[data.train_norm], data.y[data.train_norm])
+        loss_ce = loss_ce_weight * (loss_ce_anm + loss_ce_norm) / 2
+
+        loss_gce = 0.5 * criterion_gce(pred_org_b[data.train_anm], data.y[data.train_anm]) \
+                   + 0.5 * criterion_gce(pred_org_b[data.train_norm], data.y[data.train_norm])
+
+        loss_gce_aug = 0.5 * criterion_gce(pred_aug_bcak_b[data.aug_train_anm], data.aug_y[data.aug_train_anm]) \
+                       + 0.5 * criterion_gce(pred_aug_bcak_b[data.aug_train_norm], data.aug_y[data.aug_train_norm])
+
+        loss = alpha * loss_ce + loss_gce + beta * loss_gce_aug
     else:
-        h = encoder(data.x, edge_index)
-        adj = torch_geometric.utils.to_scipy_sparse_matrix(edge_index)
-        h, y_new, train_mask_new, adj_up = models.graph_smote.GraphSmote.recon_upsample(h, data.y, data.train_mask,
-                                                                                        adj=adj,
-                                                                                        portion=1.0)
-        generated_G = decoder(h)
         # output, label_scores = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
@@ -161,15 +175,23 @@ def _train_epoch(model: torch.nn.Module,
     return loss.item()
 
 
+@torch.no_grad()
 def _validate_epoch(model: torch.nn.Module,
                     data: Data,
                     edge_index: Tensor | SparseTensor,
                     args: argparse.Namespace,
                     loss_weight: torch.Tensor | None) -> float:
     model.eval()
-    predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-    val_loss = func.nll_loss(predicts[data.val_mask], data.y[data.val_mask],
-                             weight=loss_weight)
+    if args.model == "tgat":
+        criterion = func.cross_entropy
+        _, pred_org_b, _, _, data = model(data, permute=False)
+        predicts = pred_org_b
+    else:
+        criterion = func.nll_loss
+        predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+
+    val_loss = criterion(predicts[data.val_mask], data.y[data.val_mask],
+                         weight=loss_weight)
     return val_loss.item()
 
 

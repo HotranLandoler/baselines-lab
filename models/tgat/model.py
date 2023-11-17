@@ -14,13 +14,14 @@ class TGAT(torch.nn.Module):
     def __init__(self, in_channels: int, out_channels: int, edge_dim=32,
                  drop=False):
         super().__init__()
-        hid_channels = 32
+        hid_channels = 16
         encoding_dim = 8
         self.attention_act = torch.nn.functional.tanh
 
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
+
         self.mutual_attn = MutualAttentionSingleFactor()
         # self.mutual_attn = MutualAttention(encoding_dim)
         self.unified_attn = UnifiedAttention(encoding_dim)
@@ -31,26 +32,19 @@ class TGAT(torch.nn.Module):
         self.lin = torch.nn.Linear(in_channels, hid_channels)
 
         if drop:
-            self.conv = MlpDropTransformerConv(32, 32 // 2,
+            self.conv = MlpDropTransformerConv(hid_channels, hid_channels // 2,
                                                hidden_channels=8,
                                                heads=2,
                                                dropout=0.1, edge_dim=edge_dim)
         else:
-            self.conv = TransformerConv(32, 32 // 2, heads=2,
+            self.conv = TransformerConv(hid_channels, hid_channels // 2, heads=2,
                                         dropout=0.1, edge_dim=edge_dim)
 
-        self.conv1 = TransformerConv(32, 32 // 2, heads=2,
-                                     dropout=0.1, edge_dim=edge_dim)
-        self.out = torch.nn.Linear(32, out_channels)
+        # self.conv1 = TransformerConv(32, 32 // 2, heads=2,
+        #                              dropout=0.1, edge_dim=edge_dim)
+        self.out = torch.nn.Linear(hid_channels, out_channels)
 
-        self.lin_degree = torch.nn.Linear(8, 8)
-        # self.lin_degree1 = torch.nn.Linear(8, 4)
-        self.lin_combine = torch.nn.Linear(32 + encoding_dim, 32)
-        # self.lin_diff = torch.nn.Linear(8, 8)
-
-        self.lin_interval = torch.nn.Linear(8, 8)
-
-        self.lin_edge_attr = torch.nn.Linear(32 + 172, 32)
+        self.lin_combine = torch.nn.Linear(hid_channels + encoding_dim, hid_channels)
 
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
                 encode_degree=True, encode_interval=True, **kwargs):
@@ -94,7 +88,8 @@ class TGAT(torch.nn.Module):
         # rel_t_enc = torch.cat((rel_t_enc, data.edge_attr.view(-1, 1, 172)), dim=-1)
 
         out = self.out(h1)
-        out = F.log_softmax(out, dim=1)
+
+        # out = F.log_softmax(out, dim=1)
 
         # if self.training:
         #     return out, label_scores.squeeze(-1)
@@ -105,7 +100,7 @@ class TGAT(torch.nn.Module):
         # self.time_enc.reset_parameters()
         self.lin.reset_parameters()
         self.conv.reset_parameters()
-        self.conv1.reset_parameters()
+        # self.conv1.reset_parameters()
         self.out.reset_parameters()
 
         self.degree_enc.reset_parameters()

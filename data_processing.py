@@ -14,7 +14,6 @@ from torch_geometric.data import Data
 from torch_geometric.datasets import Planetoid, JODIEDataset
 from torch_geometric.transforms import BaseTransform
 
-from models.smote import Smote
 
 DATA_ROOT = "./data/"
 RAW_DIR = "raw"
@@ -53,12 +52,7 @@ def process_dgraph(data: Data, max_time_steps=32) -> Data:
     # Normalization
     x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)
-
-    # x, y, train_mask = Smote.recon_upsample(x, data.y, data.train_mask)
-
     data.x = x
-    # data.y = y
-    # data.train_mask = train_mask
 
     # Get Edge-time
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
@@ -95,6 +89,16 @@ def process_dgraph(data: Data, max_time_steps=32) -> Data:
     # trans to undirected graph
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
+
+    anomaly_mask: Tensor = data.y == 1
+    benign_mask: Tensor = data.y == 0
+
+    data.train_mask = _index_to_bool_mask(data.train_mask, data.num_nodes)
+    data.val_mask = _index_to_bool_mask(data.val_mask, data.num_nodes)
+    data.test_mask = _index_to_bool_mask(data.test_mask, data.num_nodes)
+
+    data.train_anm = data.train_mask * anomaly_mask
+    data.train_norm = data.train_mask * benign_mask
 
     return data
 
@@ -194,3 +198,9 @@ def _get_mean_out_time_interval(series: pd.core.series.Series) -> pd.core.series
     if series.shape[0] <= 1:
         return 0
     return np.diff(np.sort(series)).mean()
+
+
+def _index_to_bool_mask(idx_mask: Tensor, num_nodes: int) -> Tensor:
+    bool_mask = torch.zeros(num_nodes, dtype=torch.bool)
+    bool_mask[idx_mask] = True
+    return bool_mask

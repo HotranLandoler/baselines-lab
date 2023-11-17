@@ -1,5 +1,5 @@
 # Basic configs
-model = "tgat"
+model = "dagad"
 dataset = "DGraph"
 device = "cuda:0"
 
@@ -58,6 +58,10 @@ weight_decay = 0e-4
 weight_decay = 0e-4
 
 [models.tgat]
+# TGAT
+weight_decay = 5e-7
+
+[models.dagad]
 # TGAT
 weight_decay = 5e-7
 
