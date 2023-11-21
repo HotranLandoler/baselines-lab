@@ -11,6 +11,7 @@ import utils
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
+from models.graph_smote import GraphSmote, Classifier
 from models.dagad import GeneralizedCELoss1
 
 
@@ -21,6 +22,7 @@ def main():
 
     # Prepare data and model
     data, model = utils.prepare_data_and_model(args)
+    model_classifier = Classifier(args.hidden_size, args.num_classes).to(args.device)
 
     weight = utils.get_loss_weight(args)
     evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
@@ -35,7 +37,7 @@ def main():
 
     total_epochs: int = args.epochs
     for run in range(args.runs):
-        total_epochs = _train_run(run, model, data, edge_index,
+        total_epochs = _train_run(run, model, model_classifier, data, edge_index,
                                   args, evaluator, logger,
                                   loss_weight=weight)
 
@@ -55,6 +57,7 @@ def main():
 
 def _train_run(run: int,
                model: torch.nn.Module,
+               model_classifier: torch.nn.Module,
                data: Data,
                edge_index: Tensor | SparseTensor,
                args: argparse.Namespace,
@@ -76,6 +79,9 @@ def _train_run(run: int,
     else:
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
+    optimizer_classifier = torch.optim.Adam(model_classifier.parameters(), lr=args.lr,
+                                            weight_decay=args.weight_decay)
+
     criterion_gce = GeneralizedCELoss1(q=0.7)
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
@@ -84,10 +90,12 @@ def _train_run(run: int,
             permute = True
         else:
             permute = False
-        train_loss = _train_epoch(model, data, edge_index,
-                                  optimizer, args, criterion_gce, permute,
+
+        train_loss = _train_epoch(model, model_classifier, data, edge_index,
+                                  optimizer, optimizer_classifier,
+                                  args, criterion_gce, permute,
                                   loss_weight=loss_weight)
-        val_loss = _validate_epoch(model, data, edge_index, args,
+        val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
                                    loss_weight=loss_weight)
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
@@ -107,6 +115,9 @@ def _train_run(run: int,
         if args.model == "dagad":
             _, pred_org_b, _, _, data = model(data, permute=False)
             predicts = pred_org_b
+        elif args.model == "tgat":
+            predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+            # predicts = model_classifier(embedding)
         else:
             predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
 
@@ -119,15 +130,18 @@ def _train_run(run: int,
 
 
 def _train_epoch(model: torch.nn.Module,
+                 model_classifier: torch.nn.Module,
                  data: Data,
                  edge_index: Tensor | SparseTensor,
                  optimizer: torch.optim.Optimizer,
+                 optimizer_classifier: torch.optim.Optimizer,
                  args: argparse.Namespace,
                  criterion_gce: GeneralizedCELoss1,
                  permute: bool,
                  loss_weight: torch.Tensor | None) -> float:
     model.train()
     optimizer.zero_grad()
+    optimizer_classifier.zero_grad()
 
     # with autograd.detect_anomaly():
     if args.model == "amnet":
@@ -160,6 +174,12 @@ def _train_epoch(model: torch.nn.Module,
                        + 0.5 * criterion_gce(pred_aug_bcak_b[data.aug_train_norm], data.aug_y[data.aug_train_norm])
 
         loss = alpha * loss_ce + loss_gce + beta * loss_gce_aug
+    elif args.model == "tgat":
+        output, y_new, train_mask_new = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        # embedding, y_new, train_mask_new = GraphSmote.recon_upsample(embedding, data.y, data.train_mask)
+        # output = model_classifier(embedding)
+        loss = func.nll_loss(output[train_mask_new], y_new[train_mask_new],
+                             weight=loss_weight)
     else:
         # output, label_scores = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
@@ -171,21 +191,28 @@ def _train_epoch(model: torch.nn.Module,
     loss.backward()
 
     optimizer.step()
+    if args.model == "tgat":
+        optimizer_classifier.step()
     # print(f"Epoch {epoch} finished. loss: {loss.item():>7f}")
     return loss.item()
 
 
 @torch.no_grad()
 def _validate_epoch(model: torch.nn.Module,
+                    model_classifier: torch.nn.Module,
                     data: Data,
                     edge_index: Tensor | SparseTensor,
                     args: argparse.Namespace,
                     loss_weight: torch.Tensor | None) -> float:
     model.eval()
-    if args.model == "tgat":
+    if args.model == "dagad":
         criterion = func.cross_entropy
         _, pred_org_b, _, _, data = model(data, permute=False)
         predicts = pred_org_b
+    elif args.model == "tgat":
+        criterion = func.nll_loss
+        predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        # predicts = model_classifier(embedding)
     else:
         criterion = func.nll_loss
         predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)

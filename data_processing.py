@@ -42,7 +42,7 @@ def get_yelp() -> Data:
     return pickle.load(open(f'{DATA_ROOT}yelp.dat', 'rb'))
 
 
-def process_dgraph(data: Data, max_time_steps=32) -> Data:
+def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     """Perform pre-processing on DGraph before training.
 
     - Normalize features(x)
@@ -90,15 +90,17 @@ def process_dgraph(data: Data, max_time_steps=32) -> Data:
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
 
-    anomaly_mask: Tensor = data.y == 1
-    benign_mask: Tensor = data.y == 0
+    # Process for DAGAD model
+    if is_model_dagad:
+        anomaly_mask: Tensor = data.y == 1
+        benign_mask: Tensor = data.y == 0
 
-    data.train_mask = _index_to_bool_mask(data.train_mask, data.num_nodes)
-    data.val_mask = _index_to_bool_mask(data.val_mask, data.num_nodes)
-    data.test_mask = _index_to_bool_mask(data.test_mask, data.num_nodes)
+        data.train_mask = _index_to_bool_mask(data.train_mask, data.num_nodes)
+        data.val_mask = _index_to_bool_mask(data.val_mask, data.num_nodes)
+        data.test_mask = _index_to_bool_mask(data.test_mask, data.num_nodes)
 
-    data.train_anm = data.train_mask * anomaly_mask
-    data.train_norm = data.train_mask * benign_mask
+        data.train_anm = data.train_mask * anomaly_mask
+        data.train_norm = data.train_mask * benign_mask
 
     return data
 

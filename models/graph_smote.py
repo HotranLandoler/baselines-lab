@@ -110,3 +110,18 @@ class Decoder(torch.nn.Module):
         adj_out = torch.sigmoid(torch.mm(combine, combine.transpose(-1, -2)))
 
         return adj_out
+
+
+class Classifier(torch.nn.Module):
+    def __init__(self, nhid: int, nclass: int):
+        super(Classifier, self).__init__()
+        self.mlp = torch.nn.Linear(nhid, nclass)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.mlp.reset_parameters()
+
+    def forward(self, x: Tensor) -> Tensor:
+        out = self.mlp(x)
+        out = F.log_softmax(out, dim=-1)
+        return out

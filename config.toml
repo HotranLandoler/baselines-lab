@@ -1,9 +1,9 @@
 # Basic configs
-model = "dagad"
+model = "tgat"
 dataset = "DGraph"
 device = "cuda:0"
 
-hidden_size = 64
+hidden_size = 32
 num_layers = 2
 dropout = 0.0
 random_seed = 0
@@ -17,7 +17,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP"]
 
 use_early_stopping = true
-early_stopping_patience = 20
+early_stopping_patience = 50
 
 log_path = "./logs.txt"
 

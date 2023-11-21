@@ -112,7 +112,9 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                         hidden_channels=args.hidden_size,
                         out_channels=args.num_classes)
         case "tgat":
-            model = TGAT(in_channels=data.num_features, out_channels=args.num_classes)
+            model = TGAT(in_channels=data.num_features,
+                         hid_channels=args.hidden_size,
+                         out_channels=args.num_classes)
         case "dagad":
             model = DAGAD(data.num_features, 16, 8, args.num_classes, args.device)
         case "amnet":
