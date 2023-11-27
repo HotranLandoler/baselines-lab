@@ -13,7 +13,7 @@ from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEnco
 class TGAT(torch.nn.Module):
     """https://github.com/hxttkl/DGraph_Experiments"""
     def __init__(self, in_channels: int, hid_channels: int, out_channels: int, edge_dim=32,
-                 drop=False, encode_as_embedding=False):
+                 drop=True, encode_as_embedding=False):
         super().__init__()
         encoding_dim = 8
         self.attention_act = torch.nn.functional.tanh
@@ -88,10 +88,10 @@ class TGAT(torch.nn.Module):
         #                                           data.edge_attr.view(-1, 1, 172)), dim=-1))
         # rel_t_enc = torch.cat((rel_t_enc, data.edge_attr.view(-1, 1, 172)), dim=-1)
 
-        y_new = None
-        train_mask_new = None
-        if self.training:
-            h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
+        # y_new = None
+        # train_mask_new = None
+        # if self.training:
+        #     h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
 
         if self.encode_as_embedding:
             # Output node embedding
@@ -101,7 +101,7 @@ class TGAT(torch.nn.Module):
             out = self.out(h1)
             out = F.log_softmax(out, dim=1)
 
-        return out, y_new, train_mask_new
+        return out
 
     def reset_parameters(self):
         # self.time_enc.reset_parameters()

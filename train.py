@@ -11,7 +11,7 @@ import utils
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
-from models.graph_smote import GraphSmote, Classifier
+from models.graph_smote import GraphSmote, Classifier, Decoder
 from models.dagad import GeneralizedCELoss1
 
 
@@ -115,7 +115,7 @@ def _train_run(run: int,
         if args.model == "dagad":
             _, pred_org_b, _, _, data = model(data, permute=False)
             predicts = pred_org_b
-        elif args.model == "tgat":
+        elif args.model == "smote":
             predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
             # predicts = model_classifier(embedding)
         else:
@@ -174,7 +174,7 @@ def _train_epoch(model: torch.nn.Module,
                        + 0.5 * criterion_gce(pred_aug_bcak_b[data.aug_train_norm], data.aug_y[data.aug_train_norm])
 
         loss = alpha * loss_ce + loss_gce + beta * loss_gce_aug
-    elif args.model == "tgat":
+    elif args.model == "smote":
         output, y_new, train_mask_new = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # embedding, y_new, train_mask_new = GraphSmote.recon_upsample(embedding, data.y, data.train_mask)
         # output = model_classifier(embedding)
@@ -191,7 +191,7 @@ def _train_epoch(model: torch.nn.Module,
     loss.backward()
 
     optimizer.step()
-    if args.model == "tgat":
+    if args.model == "smote":
         optimizer_classifier.step()
     # print(f"Epoch {epoch} finished. loss: {loss.item():>7f}")
     return loss.item()
@@ -209,7 +209,7 @@ def _validate_epoch(model: torch.nn.Module,
         criterion = func.cross_entropy
         _, pred_org_b, _, _, data = model(data, permute=False)
         predicts = pred_org_b
-    elif args.model == "tgat":
+    elif args.model == "smote":
         criterion = func.nll_loss
         predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # predicts = model_classifier(embedding)

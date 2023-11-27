@@ -7,13 +7,16 @@ import numpy as np
 import torch
 import pandas as pd
 import torch_geometric.transforms
+import torch_geometric.utils as pyg_utils
 import sklearn.model_selection
 from torch import Tensor
+from torch_sparse import SparseTensor
 from torch_geometric.data import InMemoryDataset, TemporalData
 from torch_geometric.data import Data
 from torch_geometric.datasets import Planetoid, JODIEDataset
 from torch_geometric.transforms import BaseTransform
 
+from models.graph_smote import GraphSmote
 
 DATA_ROOT = "./data/"
 RAW_DIR = "raw"
@@ -49,11 +52,6 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     - Set edge-time, node-time, node-out-degree, mean-node-out-time-interval
     - To Undirected Graph
     """
-    # Normalization
-    x: Tensor = data.x
-    x = (x - x.mean(0)) / x.std(0)
-    data.x = x
-
     # Get Edge-time
     data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
     data.edge_time = data.edge_time / data.edge_time.max()
@@ -70,7 +68,25 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     for i in range(len(ids)):
         key[ids[i]] = degree[i][1]
     node_time = np.array(list(key.values()))
-    data.node_time = torch.tensor(node_time)
+    data.node_time = torch.tensor(node_time, dtype=torch.float)
+
+    if True:
+        # adj = pyg_utils.to_torch_coo_tensor(data.edge_index, size=data.num_nodes)
+        # adj = SparseTensor(row=data.edge_index[0], col=data.edge_index[1], sparse_sizes=(
+        # data.num_nodes, data.num_nodes))
+        data.x, data.y, train_mask, data.edge_index, data.edge_time, data.node_time = GraphSmote.recon_upsample(
+            data.x, data.y, data.train_mask,
+            edge_index=data.edge_index,
+            edge_time=data.edge_time,
+            node_time=data.node_time,
+            max_time_steps=max_time_steps)
+        data.train_mask = train_mask
+        # print(pyg_utils.contains_isolated_nodes(data.edge_index, num_nodes=x.shape[0]))
+
+    # Normalization
+    x: Tensor = data.x
+    x = (x - x.mean(0)) / x.std(0)
+    data.x = x
 
     # Get Node-out-degree
     data.node_out_degree = torch_geometric.utils.degree(
@@ -84,7 +100,8 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     edge_mean_out_time_interval = node_out_times.groupby("node_out").agg(_get_mean_out_time_interval)
     node_mean_out_time_interval = np.zeros(data.num_nodes)
     node_mean_out_time_interval[edge_mean_out_time_interval.index] = edge_mean_out_time_interval.values.flatten()
-    data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1), dtype=data.edge_time.dtype)
+    data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1),
+                                                    dtype=data.edge_time.dtype)
 
     # trans to undirected graph
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
@@ -95,9 +112,10 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
         anomaly_mask: Tensor = data.y == 1
         benign_mask: Tensor = data.y == 0
 
-        data.train_mask = _index_to_bool_mask(data.train_mask, data.num_nodes)
-        data.val_mask = _index_to_bool_mask(data.val_mask, data.num_nodes)
-        data.test_mask = _index_to_bool_mask(data.test_mask, data.num_nodes)
+        # Convert index masks to bool masks
+        data.train_mask = pyg_utils.index_to_mask(data.train_mask, data.num_nodes)
+        data.val_mask = pyg_utils.index_to_mask(data.val_mask, data.num_nodes)
+        data.test_mask = pyg_utils.index_to_mask(data.test_mask, data.num_nodes)
 
         data.train_anm = data.train_mask * anomaly_mask
         data.train_norm = data.train_mask * benign_mask
@@ -200,9 +218,3 @@ def _get_mean_out_time_interval(series: pd.core.series.Series) -> pd.core.series
     if series.shape[0] <= 1:
         return 0
     return np.diff(np.sort(series)).mean()
-
-
-def _index_to_bool_mask(idx_mask: Tensor, num_nodes: int) -> Tensor:
-    bool_mask = torch.zeros(num_nodes, dtype=torch.bool)
-    bool_mask[idx_mask] = True
-    return bool_mask
