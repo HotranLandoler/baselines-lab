@@ -4,6 +4,7 @@ from torch import Tensor
 from torch_geometric.data import Data
 from torch_geometric.nn import TransformerConv
 from torch_sparse import SparseTensor
+from imblearn.under_sampling import EditedNearestNeighbours
 
 from models.graph_smote import GraphSmote
 from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEncoder, MlpDropTransformerConv,
@@ -22,6 +23,8 @@ class TGAT(torch.nn.Module):
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
+
+        self.enn = EditedNearestNeighbours()
 
         self.mutual_attn = MutualAttentionSingleFactor()
         # self.mutual_attn = MutualAttention(encoding_dim)
@@ -88,10 +91,17 @@ class TGAT(torch.nn.Module):
         #                                           data.edge_attr.view(-1, 1, 172)), dim=-1))
         # rel_t_enc = torch.cat((rel_t_enc, data.edge_attr.view(-1, 1, 172)), dim=-1)
 
-        # y_new = None
-        # train_mask_new = None
-        # if self.training:
-        #     h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
+        y_new = None
+        train_mask_new = None
+        if self.training:
+            h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
+            h1_train, y_new_train = self.enn.fit_resample(h1[train_mask_new].cpu().detach(),
+                                                          y_new[train_mask_new].cpu().detach())
+            h1_train = h1.new(h1_train)
+            y_new_train = train_mask_new.new(y_new_train)
+            out = self.out(h1_train)
+            out = F.log_softmax(out, dim=1)
+            return out, y_new_train
 
         if self.encode_as_embedding:
             # Output node embedding
@@ -101,7 +111,7 @@ class TGAT(torch.nn.Module):
             out = self.out(h1)
             out = F.log_softmax(out, dim=1)
 
-        return out
+        return out, y_new, train_mask_new
 
     def reset_parameters(self):
         # self.time_enc.reset_parameters()

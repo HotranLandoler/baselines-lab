@@ -10,6 +10,7 @@ from torch import Tensor
 from torch.nn import Parameter
 from torch_geometric.nn.conv import SAGEConv
 from torch_sparse import SparseTensor
+from sklearn.neighbors import KNeighborsClassifier
 
 
 class GraphSmote(torch.nn.Module):
@@ -21,8 +22,7 @@ class GraphSmote(torch.nn.Module):
         return x, y_new, idx_train_new
 
     @staticmethod
-    def recon_upsample(embed, labels, idx_train: Tensor, edge_index: Tensor, edge_time: Tensor, node_time: Tensor,
-                       max_time_steps: int, adj: SparseTensor = None, portion=1.0, im_class_num=1):
+    def recon_upsample(embed, labels, idx_train: Tensor, adj: SparseTensor = None, portion=1.0, im_class_num=1):
         """SMOTE"""
         c_largest = 1
         avg_number = int(idx_train.shape[0] / (c_largest + 1))
@@ -47,8 +47,13 @@ class GraphSmote(torch.nn.Module):
 
                 chosen_embed = embed[chosen, :]
 
+                idx_benign_train_sampled = idx_benign_train[
+                    torch.randint_like(chosen, low=0, high=idx_benign_train.shape[0])]
+                benign_embed = embed[idx_benign_train_sampled]
                 # 获得两两节点间嵌入距离矩阵
-                distance = sp_distance.squareform(sp_distance.pdist(chosen_embed.cpu().detach()))
+                # distance = sp_distance.squareform(sp_distance.pdist(chosen_embed.cpu().detach()))
+                distance = sp_distance.cdist(chosen_embed.cpu().detach(),
+                                             benign_embed.cpu().detach())
                 np.fill_diagonal(distance, distance.max() + 100)
 
                 # 为每个节点找到嵌入最接近的节点index
@@ -56,7 +61,7 @@ class GraphSmote(torch.nn.Module):
 
                 # 计算新节点嵌入
                 interp_place = random.random()
-                new_embed = embed[chosen, :] + (chosen_embed[idx_neighbor, :] - embed[chosen, :]) * interp_place
+                new_embed = embed[chosen, :] + (benign_embed[idx_neighbor, :] - embed[chosen, :]) * interp_place
 
                 new_labels = labels.new(torch.Size((chosen.shape[0], 1))).reshape(-1).fill_(c_largest - i)
                 idx_new = np.arange(embed.shape[0], embed.shape[0] + chosen.shape[0])
@@ -73,32 +78,6 @@ class GraphSmote(torch.nn.Module):
                     else:
                         temp = adj.new(torch.clamp_(adj[chosen, :] + adj[idx_neighbor, :], min=0.0, max=1.0))
                         adj_new = torch.cat((adj_new, temp), 0)
-
-        # Set edge index
-        idx_benign_sampled = idx_benign_train[
-            torch.randint_like(idx_train_append, low=0, high=idx_benign_train.shape[0])]
-        edge_index_append = torch.stack((idx_benign_sampled, idx_train_append), dim=0)
-        # new_to_chosen_edge_index = torch.stack((idx_train_append, chosen), dim=0)
-        # new_to_neighbor_edge_index = torch.stack((idx_train_append,
-        #                                           torch.tensor(idx_neighbor, dtype=torch.int64)), dim=0)
-        # edge_index_append = torch.cat((new_to_chosen_edge_index, new_to_neighbor_edge_index), dim=-1)
-        edge_index_new = torch.cat((edge_index, edge_index_append), dim=-1)
-
-        # Set Edge Time
-        edge_time_append = node_time[idx_benign_sampled].reshape(-1, 1)
-        # chosen_node_time = node_time[chosen]
-        # neighbor_node_time = node_time[idx_neighbor]
-        # edge_time_append = torch.cat((chosen_node_time, neighbor_node_time), dim=0).reshape(-1, 1)
-
-        # edge_time_append = torch.zeros(size=(edge_index_append.shape[1], 1), dtype=edge_time.dtype)
-        # edge_time_append: Tensor = torch.rand(size=(edge_index_append.shape[1], 1), dtype=edge_time.dtype) * max_time_steps
-
-        edge_time_new = torch.cat((edge_time, edge_time_append), dim=0)
-
-        # node_time_stack = torch.stack((chosen_node_time, neighbor_node_time), dim=0)
-        # node_time_append, _ = torch.min(node_time_stack, dim=0)
-        node_time_append = node_time[idx_benign_sampled]
-        node_time_new = torch.cat((node_time, node_time_append), dim=0)
 
         if adj is not None:
             # add_num = adj_new.shape[0]
@@ -117,7 +96,7 @@ class GraphSmote(torch.nn.Module):
 
         else:
             # return embed, labels, idx_train, edge_index, edge_time, node_time
-            return embed, labels, idx_train, edge_index_new, edge_time_new, node_time_new
+            return embed, labels, idx_train
 
 
 class SageEncoder(torch.nn.Module):

@@ -70,19 +70,6 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     node_time = np.array(list(key.values()))
     data.node_time = torch.tensor(node_time, dtype=torch.float)
 
-    if True:
-        # adj = pyg_utils.to_torch_coo_tensor(data.edge_index, size=data.num_nodes)
-        # adj = SparseTensor(row=data.edge_index[0], col=data.edge_index[1], sparse_sizes=(
-        # data.num_nodes, data.num_nodes))
-        data.x, data.y, train_mask, data.edge_index, data.edge_time, data.node_time = GraphSmote.recon_upsample(
-            data.x, data.y, data.train_mask,
-            edge_index=data.edge_index,
-            edge_time=data.edge_time,
-            node_time=data.node_time,
-            max_time_steps=max_time_steps)
-        data.train_mask = train_mask
-        # print(pyg_utils.contains_isolated_nodes(data.edge_index, num_nodes=x.shape[0]))
-
     # Normalization
     x: Tensor = data.x
     x = (x - x.mean(0)) / x.std(0)
