@@ -97,17 +97,17 @@ class TGAT(torch.nn.Module):
         y_new = None
         train_mask_new = None
         if self.training:
-            h1_train, y_new_train = self.smote.fit_resample(
-                h1[data.train_mask].cpu().detach(),
-                data.y[data.train_mask].cpu().detach())
-            # h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
+            # h1_train, y_new_train = self.smote.fit_resample(
+            #     h1[data.train_mask].cpu().detach(),
+            #     data.y[data.train_mask].cpu().detach())
+            h1, y_new, train_mask_new = GraphSmote.recon_upsample(h1, data.y, data.train_mask)
             # h1_train, y_new_train = self.enn.fit_resample(h1[train_mask_new].cpu().detach(),
             #                                               y_new[train_mask_new].cpu().detach())
-            h1_train = h1.new(h1_train)
-            y_new_train = data.y.new(y_new_train)
-            out = self.out(h1_train)
-            out = F.log_softmax(out, dim=1)
-            return out, y_new_train
+            # h1_train = h1.new(h1_train)
+            # y_new_train = data.y.new(y_new_train)
+            # out = self.out(h1_train)
+            # out = F.log_softmax(out, dim=1)
+            # return out, y_new_train
 
         if self.encode_as_embedding:
             # Output node embedding

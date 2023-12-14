@@ -17,7 +17,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP"]
 
 use_early_stopping = true
-early_stopping_patience = 30
+early_stopping_patience = 50
 
 log_path = "./logs.txt"
 
@@ -25,7 +25,7 @@ log_path = "./logs.txt"
 
 [datasets.DGraph]
 num_classes = 2
-loss_weight = 1
+loss_weight = 50
 
 [datasets.Cora]
 num_classes = 7
