@@ -16,7 +16,7 @@ drop_rate = 0.25
 
 metrics = ["AUC", "AP"]
 
-use_early_stopping = true
+use_early_stopping = false
 early_stopping_patience = 50
 
 log_path = "./logs.txt"

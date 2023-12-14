@@ -25,7 +25,7 @@ def main():
     model_classifier = Classifier(args.hidden_size, args.num_classes).to(args.device)
 
     weight = utils.get_loss_weight(args)
-    evaluator = Evaluator(args.metrics, num_classes=args.num_classes)
+    evaluator = Evaluator(args.metrics, num_classes=args.num_classes, runs=args.runs)
     logger = Logger(settings=args)
 
     # print(model)
@@ -85,6 +85,7 @@ def _train_run(run: int,
     criterion_gce = GeneralizedCELoss1(q=0.7)
     early_stopping = EarlyStopping(patience=args.early_stopping_patience, verbose=True)
 
+    val_loss_best = 99.
     for epoch in range(args.epochs):
         if epoch % 30 == 0:
             permute = True
@@ -95,8 +96,14 @@ def _train_run(run: int,
                                   optimizer, optimizer_classifier,
                                   args, criterion_gce, permute,
                                   loss_weight=loss_weight)
-        val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
-                                   loss_weight=loss_weight)
+        predicts, val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
+                                             loss_weight=loss_weight)
+
+        if val_loss < val_loss_best:
+            val_loss_best = val_loss
+            with torch.no_grad():
+                evaluator.evaluate_test(run, predicts, data.y, data.test_mask)
+
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
               f"val_loss: {val_loss:>7f}")
@@ -112,19 +119,20 @@ def _train_run(run: int,
     # Test
     with torch.no_grad():
         model.eval()
-        if args.model == "dagad":
-            _, pred_org_b, _, _, data = model(data, permute=False)
-            predicts = pred_org_b
-        elif args.model == "tgat":
-            predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-            # predicts = model_classifier(embedding)
-        else:
-            predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-
-        print(f"Run {run}: ", end='')
-        for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
-            print(result, end='')
-        print("")
+        evaluator.print_run_results(run)
+        # if args.model == "dagad":
+        #     _, pred_org_b, _, _, data = model(data, permute=False)
+        #     predicts = pred_org_b
+        # elif args.model == "tgat":
+        #     predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        #     # predicts = model_classifier(embedding)
+        # else:
+        #     predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        #
+        # print(f"Run {run}: ", end='')
+        # for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
+        #     print(result, end='')
+        # print("")
 
     return total_epochs
 
@@ -219,7 +227,7 @@ def _validate_epoch(model: torch.nn.Module,
 
     val_loss = criterion(predicts[data.val_mask], data.y[data.val_mask],
                          weight=loss_weight)
-    return val_loss.item()
+    return predicts, val_loss.item()
 
 
 def _model_wrapper(model: torch.nn.Module,

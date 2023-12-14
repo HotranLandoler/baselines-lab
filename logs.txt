@@ -478,11 +478,11 @@ AUC: [0.8129080533981323, 0.8134989738464355, 0.8137564659118652]
 AP: [0.5222023129463196, 0.522599458694458, 0.5225484371185303]
 Final AUC: 0.8134 ± 0.0004, Final AP: 0.5225 ± 0.0002,
 
-[2023-12-14 11:01:15]
+[2023-12-14 15:02:11]
 Model: TGAT
 Dataset: DGraph
 Note: GFCA
-Settings: Namespace(epochs=300, runs=5, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
-AUC: [0.8156716823577881, 0.8146789073944092, 0.8145865797996521, 0.8126633763313293, 0.8134920597076416]
-AP: [0.5230403542518616, 0.5227639675140381, 0.5224753022193909, 0.5232129693031311, 0.5230399370193481]
-Final AUC: 0.8142 ± 0.0012, Final AP: 0.5229 ± 0.0003,
+Settings: Namespace(epochs=300, runs=5, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='DGraph', device='cuda:0', hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8160461187362671, 0.8140177726745605, 0.8156982660293579, 0.8140518665313721, 0.815014660358429]
+AP: [0.5229695439338684, 0.5229300260543823, 0.5231549739837646, 0.5224503874778748, 0.5230173468589783]
+Final AUC: 0.8150 ± 0.0009, Final AP: 0.5229 ± 0.0003,
