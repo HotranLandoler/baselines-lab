@@ -486,3 +486,12 @@ Settings: Namespace(epochs=300, runs=5, save_log=True, plot=False, weight_decay=
 AUC: [0.8160461187362671, 0.8140177726745605, 0.8156982660293579, 0.8140518665313721, 0.815014660358429]
 AP: [0.5229695439338684, 0.5229300260543823, 0.5231549739837646, 0.5224503874778748, 0.5230173468589783]
 Final AUC: 0.8150 ± 0.0009, Final AP: 0.5229 ± 0.0003,
+
+[2023-12-14 15:36:50]
+Model: TGAT
+Dataset: Yelp
+Note: GFCA
+Settings: Namespace(epochs=500, runs=5, save_log=True, plot=False, weight_decay=5e-07, num_classes=2, loss_weight=1, model='tgat', dataset='Yelp', device='cuda:0', hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP'], use_early_stopping=False, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8582872152328491, 0.8462477922439575, 0.8596234321594238, 0.8523098826408386, 0.8573077321052551]
+AP: [0.7817389965057373, 0.7711508274078369, 0.7833608984947205, 0.779913067817688, 0.782760739326477]
+Final AUC: 0.8548 ± 0.0055, Final AP: 0.7798 ± 0.0050,

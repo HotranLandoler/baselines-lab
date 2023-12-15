@@ -141,28 +141,6 @@ def process_jodie(data: TemporalData) -> Data:
     val_mask = torch.tensor(indexes[5759:6993])
     test_mask = torch.tensor(indexes[6993:])
 
-    # mask = torch.zeros(data.num_nodes, dtype=torch.int)
-    # mask[:6459] = 0
-    # mask[6459:7844] = 1
-    # mask[7844:] = 2
-    # # Shuffle
-    # indexes = torch.randperm(mask.nelement())
-    # train_mask = mask[indexes] == 0
-    # val_mask = mask[indexes] == 1
-    # test_mask = mask[indexes] == 2
-
-    # train_mask = torch.zeros(data.num_nodes, dtype=torch.int)
-    # train_mask[:6459] = True
-    # val_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
-    # val_mask[6459:7844] = True
-    # test_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
-    # test_mask[7844:] = True
-
-    # val_time, test_time = list(np.quantile(data.t, [0.70, 0.85]))
-    # train_mask = data.t <= val_time
-    # val_mask = (data.t > val_time) * (data.t <= test_time)
-    # test_mask = data.t > test_time
-
     return Data(x, edge_index, data.msg, y,
                 train_mask=train_mask,
                 val_mask=val_mask,
@@ -172,31 +150,22 @@ def process_jodie(data: TemporalData) -> Data:
 
 
 def process_yelpchi(data: Data, train_ratio=0.4, test_ratio=0.67) -> Data:
-    # indexes = list(range(data.num_nodes))
-    #
-    # train_mask, rest_indexes, _, rest_y = sklearn.model_selection.train_test_split(
-    #     indexes, data.y, stratify=data.y, train_size=train_ratio,
-    #     random_state=2, shuffle=True
-    # )
-    # val_mask, test_mask, _, _ = sklearn.model_selection.train_test_split(
-    #     rest_indexes, rest_y, stratify=rest_y, test_size=test_ratio,
-    #     random_state=2, shuffle=True
-    # )
-
     edge_time = torch.zeros((data.num_edges, 1), dtype=torch.float32)
     node_time = torch.zeros(data.num_nodes, dtype=torch.float32)
+    node_mean_out_time_interval = torch.zeros((data.num_nodes, 1), dtype=torch.float32)
 
     if not hasattr(data, 'adj_t'):
         node_out_degree = torch_geometric.utils.degree(
             data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
         data.node_out_degree = (node_out_degree - node_out_degree.mean(0)) / node_out_degree.std(0)
 
-    # data.train_mask = train_mask
-    # data.val_mask = val_mask
-    # data.test_mask = test_mask
-
     data.edge_time = edge_time
     data.node_time = node_time
+    data.node_mean_out_time_interval = node_mean_out_time_interval
+
+    data.train_mask = pyg_utils.mask_to_index(data.train_mask)
+    data.val_mask = pyg_utils.mask_to_index(data.val_mask)
+    data.test_mask = pyg_utils.mask_to_index(data.test_mask)
 
     return data
 
