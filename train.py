@@ -1,4 +1,5 @@
 import argparse
+import typing
 
 import torch
 import torch.nn.functional as func
@@ -96,13 +97,13 @@ def _train_run(run: int,
                                   optimizer, optimizer_classifier,
                                   args, criterion_gce, permute,
                                   loss_weight=loss_weight)
-        predicts, val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
-                                             loss_weight=loss_weight)
+        out, val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
+                                        loss_weight=loss_weight)
 
         if val_loss < val_loss_best:
             val_loss_best = val_loss
             with torch.no_grad():
-                evaluator.evaluate_test(run, predicts, data.y, data.test_mask)
+                evaluator.evaluate_test(run, out.exp(), data.y, data.test_mask)
 
         print(f"Epoch {epoch} finished. "
               f"train_loss: {train_loss:>7f} "
@@ -211,7 +212,7 @@ def _validate_epoch(model: torch.nn.Module,
                     data: Data,
                     edge_index: Tensor | SparseTensor,
                     args: argparse.Namespace,
-                    loss_weight: torch.Tensor | None) -> float:
+                    loss_weight: torch.Tensor | None) -> (Tensor, float):
     model.eval()
     if args.model == "dagad":
         criterion = func.cross_entropy

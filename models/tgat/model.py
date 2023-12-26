@@ -4,9 +4,6 @@ from torch import Tensor
 from torch_geometric.data import Data
 from torch_geometric.nn import TransformerConv
 from torch_sparse import SparseTensor
-from imblearn.over_sampling import BorderlineSMOTE, SMOTE
-from imblearn.under_sampling import TomekLinks
-from imblearn.combine import SMOTEENN
 
 from models.graph_smote import GraphSmote
 from models.tgat.layers import (TimeEncode, DegreeEncoder, TemporalFrequencyEncoder, MlpDropTransformerConv,
@@ -25,9 +22,6 @@ class TGAT(torch.nn.Module):
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
-
-        # self.smote = BorderlineSMOTE(sampling_strategy="auto")
-        self.smote = TomekLinks()
 
         self.mutual_attn = MutualAttentionSingleFactor()
         # self.mutual_attn = MutualAttention(encoding_dim)

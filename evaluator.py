@@ -36,15 +36,19 @@ class Evaluator:
                   predicts: Tensor,
                   target: Tensor,
                   mask: Tensor):
-        if metric_name == 'AUC':
-            return metrics.multiclass_auroc(predicts[mask], target[mask],
-                                            num_classes=self.__num_classes)
-        elif metric_name == 'AP':
-            return metrics.multiclass_average_precision(
-                predicts[mask], target[mask],
-                num_classes=self.__num_classes)
-        else:
-            raise ValueError('Invalid metric name')
+        match metric_name:
+            case "AUC":
+                return metrics.multiclass_auroc(predicts[mask], target[mask],
+                                                num_classes=self.__num_classes)
+            case "AP":
+                return metrics.multiclass_average_precision(
+                    predicts[mask], target[mask],
+                    num_classes=self.__num_classes)
+            case "Recall":
+                return metrics.multiclass_recall(predicts[mask], target[mask],
+                                                 num_classes=self.__num_classes)
+            case _:
+                raise ValueError('Invalid metric name')
 
     def __str__(self):
         return f"Results: {self.metric_results}"

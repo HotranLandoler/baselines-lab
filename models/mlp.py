@@ -1,4 +1,5 @@
 import torch
+import torch_geometric.nn
 from torch import Tensor
 from torch.nn import Sequential, Linear, ReLU
 
@@ -8,13 +9,15 @@ class MLP(torch.nn.Module):
 
     def __init__(self, in_channels: int, hidden_channels: int, out_channels: int):
         super().__init__()
-        self.mlp = torch.nn.Sequential(Linear(in_channels, hidden_channels),
-                                       ReLU(),
-                                       Linear(hidden_channels, out_channels))
+        self.lin1 = torch.nn.Linear(in_channels, hidden_channels)
+        self.lin2 = torch.nn.Linear(hidden_channels, out_channels)
 
     def reset_parameters(self):
-        pass
+        self.lin1.reset_parameters()
+        self.lin2.reset_parameters()
 
     def forward(self, x: Tensor, edge_index, **kwargs):
-        x = self.mlp(x)
+        x = self.lin1(x)
+        x = torch.nn.functional.relu(x)
+        x = self.lin2(x)
         return x.log_softmax(dim=-1)

@@ -110,6 +110,72 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     return data
 
 
+def process_ethereum(data: Data, max_time_steps=32, train_ratio=0.4, test_ratio=0.67) -> Data:
+    """Perform pre-processing on Ethereum before training.
+    """
+    # Get Edge-time
+    data.edge_time = data.edge_time - data.edge_time.min()  # process edge time
+    data.edge_time = data.edge_time / data.edge_time.max()
+    data.edge_time = (data.edge_time * max_time_steps).long()
+    data.edge_time = data.edge_time.view(-1, 1).float()
+
+    # Get Node-time
+    edge_index_reshaped = torch.stack((data.edge_index[0],
+                                       data.edge_index[1]))
+    edge = torch.cat([edge_index_reshaped, data.edge_time.view(1, -1)], dim=0)  # process node time
+    degree = pd.DataFrame(edge.T.numpy()).groupby(0).min().values
+    ids = pd.DataFrame(edge_index_reshaped.T.numpy()).groupby(0).count().index.values
+    key = {i: 0 for i in range(data.num_nodes)}
+    for i in range(len(ids)):
+        key[ids[i]] = degree[i][1]
+    node_time = np.array(list(key.values()))
+    data.node_time = torch.tensor(node_time, dtype=torch.float)
+
+    # Get Node-out-degree
+    data.node_out_degree = torch_geometric.utils.degree(
+        data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+
+    # Normalization
+    deg = torch_geometric.utils.degree(
+        data.edge_index[0], num_nodes=data.num_nodes, dtype=torch.long)
+    deg[deg > 16] = 16
+    x = torch_geometric.utils.one_hot(deg, num_classes=16 + 1, dtype=torch.float)
+    x = (x - x.mean(0)) / x.std(0)
+    data.x = x
+
+    # Get average node-out-time-interval
+    node_out_times = pd.DataFrame(
+        np.concatenate(
+            (data.edge_index[0].reshape(-1, 1), data.edge_time.int().reshape(-1, 1)), axis=-1),
+        columns=["node_out", "time"])
+    edge_mean_out_time_interval = node_out_times.groupby("node_out").agg(_get_mean_out_time_interval)
+    node_mean_out_time_interval = np.zeros(data.num_nodes)
+    node_mean_out_time_interval[edge_mean_out_time_interval.index] = edge_mean_out_time_interval.values.flatten()
+    data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1),
+                                                    dtype=data.edge_time.dtype)
+
+    # trans to undirected graph
+    data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
+    data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
+
+    # Train-test split
+    indexes = list(range(data.num_nodes))
+
+    train_mask, rest_indexes, _, rest_y = sklearn.model_selection.train_test_split(
+        indexes, data.y, stratify=data.y, train_size=train_ratio,
+        random_state=2, shuffle=True
+    )
+    val_mask, test_mask, _, _ = sklearn.model_selection.train_test_split(
+        rest_indexes, rest_y, stratify=rest_y, test_size=test_ratio,
+        random_state=2, shuffle=True
+    )
+    data.train_mask = train_mask
+    data.val_mask = val_mask
+    data.test_mask = test_mask
+
+    return data
+
+
 def process_jodie(data: TemporalData) -> Data:
     x = torch.zeros((data.num_nodes, data.msg.shape[1]))
     # x = torch.arange(0, data.num_nodes, dtype=torch.float).reshape(-1, 1)

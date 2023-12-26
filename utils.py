@@ -3,6 +3,7 @@ from argparse import Namespace
 
 import numpy as np
 import torch
+import torch_geometric.transforms
 import torch_geometric.transforms as transforms
 from torch import Tensor
 from torch.nn import Module
@@ -72,6 +73,9 @@ def _prepare_data(args: Namespace) -> Data:
         case "Yelp":
             # data = datasets.YelpChiDataset(transform=dataset_transform)[0]
             data = data_processing.get_yelp()
+        case "Ethereum":
+            # onehot_degree = torch_geometric.transforms.OneHotDegree(max_degree=16, cat=False)
+            data = datasets.EthereumDataset(transform=dataset_transform)[0]
         case _:
             raise NotImplementedError(f"Dataset {args.dataset} not implemented")
 
@@ -138,5 +142,7 @@ def _process_data(args: Namespace, data: Data) -> Data:
             return data_processing.process_yelpchi(data)
         case "Wikipedia":
             return data_processing.process_jodie(data)
+        case "Ethereum":
+            return data_processing.process_ethereum(data)
         case _:
             return data

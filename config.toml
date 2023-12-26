@@ -1,7 +1,7 @@
 # Basic configs
 model = "tgat"
-dataset = "Yelp"
-device = "cuda:0"
+dataset = "Ethereum"
+device = "cpu"
 
 hidden_size = 32
 num_layers = 2
@@ -14,9 +14,9 @@ lr = 0.01
 # Drop Message rate
 drop_rate = 0.25
 
-metrics = ["AUC", "AP"]
+metrics = ["AUC", "AP", "Recall"]
 
-use_early_stopping = false
+use_early_stopping = true
 early_stopping_patience = 50
 
 log_path = "./logs.txt"
@@ -38,6 +38,10 @@ loss_weight = 50
 [datasets.Yelp]
 num_classes = 2
 loss_weight = 1
+
+[datasets.Ethereum]
+num_classes = 2
+loss_weight = 50
 
 # Model configs
 
