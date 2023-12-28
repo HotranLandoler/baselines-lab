@@ -111,7 +111,7 @@ class TGAT(torch.nn.Module):
             out = self.out(h1)
             out = F.log_softmax(out, dim=1)
 
-        return out, y_new, train_mask_new
+        return h1, out, y_new, train_mask_new
 
     def reset_parameters(self):
         # self.time_enc.reset_parameters()

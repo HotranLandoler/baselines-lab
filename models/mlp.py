@@ -20,4 +20,4 @@ class MLP(torch.nn.Module):
         x = self.lin1(x)
         x = torch.nn.functional.relu(x)
         x = self.lin2(x)
-        return x.log_softmax(dim=-1)
+        return x, x.log_softmax(dim=-1)

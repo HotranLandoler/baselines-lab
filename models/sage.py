@@ -25,4 +25,4 @@ class GraphSAGE(torch.nn.Module):
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, **kwargs):
         output = self.sage(x, edge_index)
 
-        return output.log_softmax(dim=-1)
+        return output, output.log_softmax(dim=-1)

@@ -504,3 +504,13 @@ Settings: Namespace(epochs=500, runs=5, save_log=True, plot=False, weight_decay=
 AUC: [0.7049293518066406, 0.7049293518066406, 0.7049293518066406, 0.7049293518066406, 0.7049293518066406]
 AP: [0.5004963874816895, 0.5004963874816895, 0.5004963874816895, 0.5004963874816895, 0.5004963874816895]
 Final AUC: 0.7049 ± 0.0000, Final AP: 0.5005 ± 0.0000,
+
+[2023-12-28 08:55:48]
+Model: AMNET
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=1e-05, num_classes=2, loss_weight=1, model='amnet', dataset='Yelp', device='cuda:0', hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8351490497589111, 0.8379958868026733, 0.8386532664299011]
+AP: [0.7470081448554993, 0.748192310333252, 0.7493285536766052]
+Recall: [0.6329147815704346, 0.634087324142456, 0.6375707387924194]
+Final AUC: 0.8373 ± 0.0019, Final AP: 0.7482 ± 0.0012, Final Recall: 0.6349 ± 0.0024,

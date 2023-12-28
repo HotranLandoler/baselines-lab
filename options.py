@@ -15,6 +15,7 @@ def prepare_args():
     # parser.add_argument('--loss-weight', type=int, default=50)
     parser.add_argument('--save-log', action='store_true', help='save experiment log to file')
     parser.add_argument('--plot', action='store_true', help='plot losses and save to file')
+    parser.add_argument('--visualize', action='store_true', help='plot embedding')
     args = parser.parse_args()
     _parse_configs(args)
     return args

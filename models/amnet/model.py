@@ -78,9 +78,9 @@ class AMNet(nn.Module):
             marginal_loss = bias
 
         if self.training:
-            return y_hat,  marginal_loss
+            return res, y_hat,  marginal_loss
         else:
-            return y_hat
+            return res, y_hat
 
     @torch.no_grad()
     def get_attn(self, label, train_index, test_index):

@@ -4,6 +4,12 @@ from datetime import datetime
 from argparse import Namespace
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import torch
+from torch import Tensor
+from sklearn.manifold import TSNE
 
 from evaluator import Evaluator
 
@@ -55,3 +61,35 @@ class Logger:
 
         filename = f"{datetime.now():%Y-%m-%d-%H_%M_%S}.svg"
         fig.savefig(os.path.join(_PLOTS_PATH, filename))
+
+    def plot_embedding_visualization(self, embedding_test: Tensor,
+                                     y_test: Tensor):
+        """Visualize embeddings using t-SNE and save to file."""
+        num_samples = 800
+
+        embedding_test = embedding_test.detach().cpu().numpy()
+        y_test = y_test.detach().cpu().numpy()
+
+        embedding_reduced = TSNE(n_components=2, learning_rate='auto',
+                                 init='random', perplexity=3).fit_transform(embedding_test)
+
+        embedding_fraud = embedding_reduced[y_test == 1]
+        embedding_benign = embedding_reduced[y_test == 0]
+
+        embedding_fraud_sampled = embedding_fraud[
+            np.random.randint(low=0, high=embedding_fraud.shape[0], size=num_samples)
+        ]
+        embedding_benign_sampled = embedding_benign[
+            np.random.randint(low=0, high=embedding_benign.shape[0], size=num_samples)
+        ]
+        data_benign = np.concatenate((embedding_benign_sampled,
+                                      np.zeros((num_samples, 1), dtype=int)), axis=-1)
+        data_fraud = np.concatenate((embedding_fraud_sampled,
+                                     np.ones((num_samples, 1), dtype=int)), axis=-1)
+
+        column_titles = ["x1", "x2", "y"]
+        df = pd.DataFrame(np.concatenate((data_benign, data_fraud), axis=0),
+                          columns=column_titles)
+        plot = sns.scatterplot(df, x="x1", y="x2", hue="y", legend=False)
+        filename = f"tSNE-{self._model_name}-{self._dataset}.svg"
+        plot.get_figure().savefig(os.path.join(_PLOTS_PATH, filename))

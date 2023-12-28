@@ -121,6 +121,12 @@ def _train_run(run: int,
     with torch.no_grad():
         model.eval()
         evaluator.print_run_results(run)
+
+        if args.visualize:
+            # The first return value is the embedding
+            embedding, *_ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+            logger.plot_embedding_visualization(embedding[data.test_mask],
+                                                data.y[data.test_mask])
         # if args.model == "dagad":
         #     _, pred_org_b, _, _, data = model(data, permute=False)
         #     predicts = pred_org_b
@@ -158,8 +164,8 @@ def _train_epoch(model: torch.nn.Module,
         train_mask_bool[data.train_mask] = True
         anomaly_label = train_mask_bool & (data.y == 1)
         normal_label = train_mask_bool & (data.y == 0)
-        output, bias_loss = model(data.x, edge_index,
-                                  label=(anomaly_label, normal_label))
+        _, output, bias_loss = model(data.x, edge_index,
+                                     label=(anomaly_label, normal_label))
         beta = 1.0
         loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
                 bias_loss * beta)
@@ -184,14 +190,14 @@ def _train_epoch(model: torch.nn.Module,
 
         loss = alpha * loss_ce + loss_gce + beta * loss_gce_aug
     elif args.model == "tgat":
-        output, y_new, train_mask_new = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        _, output, y_new, train_mask_new = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # embedding, y_new, train_mask_new = GraphSmote.recon_upsample(embedding, data.y, data.train_mask)
         # output = model_classifier(embedding)
         loss = func.nll_loss(output[train_mask_new], y_new[train_mask_new],
                              weight=loss_weight)
     else:
         # output, label_scores = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-        output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        _, output = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         loss = func.nll_loss(output[data.train_mask], data.y[data.train_mask],
                              weight=loss_weight)
         # label_loss_factor = 0.0
@@ -220,11 +226,11 @@ def _validate_epoch(model: torch.nn.Module,
         predicts = pred_org_b
     elif args.model == "tgat":
         criterion = func.nll_loss
-        predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        _, predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # predicts = model_classifier(embedding)
     else:
         criterion = func.nll_loss
-        predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        _, predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
 
     val_loss = criterion(predicts[data.val_mask], data.y[data.val_mask],
                          weight=loss_weight)
@@ -235,7 +241,7 @@ def _model_wrapper(model: torch.nn.Module,
                    x: Tensor,
                    edge_index: Tensor | SparseTensor,
                    data: Data,
-                   drop_rate: float) -> Tensor:
+                   drop_rate: float) -> typing.Union[Tensor, Tensor]:
     return model(x, edge_index, data=data, drop_rate=drop_rate)
 
 
