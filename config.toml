@@ -1,5 +1,5 @@
 # Basic configs
-model = "amnet"
+model = "tgat"
 dataset = "DGraph"
 device = "cuda:0"
 
