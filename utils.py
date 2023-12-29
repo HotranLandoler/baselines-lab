@@ -12,7 +12,7 @@ from torch_geometric.data import Data
 import data_processing
 import datasets
 import models.h2gcn.utils
-from models import GCN, DropGCN, MlpDropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet
+from models import GCN, DropGCN, MlpDropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet, GFCA
 from models.dagad import DAGAD
 
 
@@ -127,6 +127,10 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                           num_class=args.num_classes,
                           K=5,
                           filter_num=2)
+        case "gfca":
+            model = GFCA(in_channels=data.num_features,
+                         hid_channels=args.hidden_size,
+                         out_channels=args.num_classes)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")
 

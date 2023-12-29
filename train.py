@@ -3,6 +3,7 @@ import typing
 
 import torch
 import torch.nn.functional as func
+import torch_geometric
 from torch import autograd, Tensor
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
@@ -12,7 +13,7 @@ import utils
 from logger import Logger
 from evaluator import Evaluator
 from early_stopping import EarlyStopping
-from models.graph_smote import GraphSmote, Classifier, Decoder
+from models.graph_smote import Classifier
 from models.dagad import GeneralizedCELoss1
 
 
@@ -23,6 +24,8 @@ def main():
 
     # Prepare data and model
     data, model = utils.prepare_data_and_model(args)
+    # torch_geometric.compile(model)
+
     model_classifier = Classifier(args.hidden_size, args.num_classes).to(args.device)
 
     weight = utils.get_loss_weight(args)
@@ -100,6 +103,9 @@ def _train_run(run: int,
         out, val_loss = _validate_epoch(model, model_classifier, data, edge_index, args,
                                         loss_weight=loss_weight)
 
+        # with torch.no_grad():
+        #     evaluator.evaluate_test(run, out.exp(), data.y, data.test_mask)
+
         if val_loss < val_loss_best:
             val_loss_best = val_loss
             with torch.no_grad():
@@ -120,6 +126,8 @@ def _train_run(run: int,
     # Test
     with torch.no_grad():
         model.eval()
+        # _, out, *_ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
+        # evaluator.evaluate_test(run, out.exp(), data.y, data.test_mask)
         evaluator.print_run_results(run)
 
         if args.visualize:
@@ -127,19 +135,6 @@ def _train_run(run: int,
             embedding, *_ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
             logger.plot_embedding_visualization(embedding[data.test_mask],
                                                 data.y[data.test_mask])
-        # if args.model == "dagad":
-        #     _, pred_org_b, _, _, data = model(data, permute=False)
-        #     predicts = pred_org_b
-        # elif args.model == "tgat":
-        #     predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-        #     # predicts = model_classifier(embedding)
-        # else:
-        #     predicts = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
-        #
-        # print(f"Run {run}: ", end='')
-        # for result in evaluator.evaluate_test(predicts, data.y, data.test_mask):
-        #     print(result, end='')
-        # print("")
 
     return total_epochs
 
@@ -189,7 +184,7 @@ def _train_epoch(model: torch.nn.Module,
                        + 0.5 * criterion_gce(pred_aug_bcak_b[data.aug_train_norm], data.aug_y[data.aug_train_norm])
 
         loss = alpha * loss_ce + loss_gce + beta * loss_gce_aug
-    elif args.model == "tgat":
+    elif args.model == "gfca":
         _, output, y_new, train_mask_new = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # embedding, y_new, train_mask_new = GraphSmote.recon_upsample(embedding, data.y, data.train_mask)
         # output = model_classifier(embedding)
@@ -224,7 +219,7 @@ def _validate_epoch(model: torch.nn.Module,
         criterion = func.cross_entropy
         _, pred_org_b, _, _, data = model(data, permute=False)
         predicts = pred_org_b
-    elif args.model == "tgat":
+    elif args.model == "gfca":
         criterion = func.nll_loss
         _, predicts, _, _ = _model_wrapper(model, data.x, edge_index, data, args.drop_rate)
         # predicts = model_classifier(embedding)

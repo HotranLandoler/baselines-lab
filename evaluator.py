@@ -15,6 +15,9 @@ class Evaluator:
         """Evaluate on the test set"""
         for metric, results in self.metric_results.items():
             result = self._evaluate(metric, predicts, target, test_mask)
+            # if results[run] > result.item():
+            #     break
+
             results[run] = result.item()
             # print(f"{metric}-{run}: {result.item()}")
 

@@ -6,3 +6,4 @@ from .mlp import MLP
 from .tgat.model import TGAT
 from .sage import GraphSAGE
 from .amnet.model import AMNet
+from .gfca.model import GFCA
