@@ -1,5 +1,5 @@
 # Basic configs
-model = "gfca"
+model = "amnet"
 dataset = "DGraph"
 device = "cuda:0"
 
