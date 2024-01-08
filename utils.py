@@ -12,7 +12,7 @@ from torch_geometric.data import Data
 import data_processing
 import datasets
 import models.h2gcn.utils
-from models import GCN, DropGCN, MlpDropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, AMNet, GFCA
+from models import GCN, DropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, DropSAGE, AMNet, GFCA
 from models.dagad import DAGAD
 
 
@@ -96,11 +96,12 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
                               dropout=args.dropout)
         case "dropgcn":
             model = DropGCN(feature_num=data.num_features,
+                            hidden_num=args.hidden_size,
                             output_num=args.num_classes)
-        case "mlpdropgcn":
-            model = MlpDropGCN(feature_num=data.num_features,
-                               hidden_num=args.hidden_size,
-                               output_num=args.num_classes)
+        case "dropsage":
+            model = DropSAGE(feature_num=data.num_features,
+                             hidden_num=args.hidden_size,
+                             output_num=args.num_classes)
         case "h2gcn":
             model = H2GCN(data=data,
                           num_features=data.num_features,

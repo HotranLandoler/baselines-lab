@@ -1,25 +1,21 @@
-import math
-
 import torch
 import torch.nn.functional as F
-import torch_sparse
-import torch_geometric
 from torch import Tensor
 from torch.nn import Parameter, Sequential, Linear
 from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 from torch_geometric.typing import Adj
-from torch_geometric.nn.conv import MessagePassing, GCNConv
+from torch_geometric.nn.conv import SAGEConv
 
 import models.gfca.layers as cafd
 
 
-class DropGCN(torch.nn.Module):
+class DropSAGE(torch.nn.Module):
     def __init__(self, feature_num, hidden_num, output_num):
         super().__init__()
-        encoding_dim = 16
-        self.gnn1 = GCNConv(feature_num, hidden_num)
-        self.gnn2 = DropGCNConv(hidden_num, hidden_num)
+        encoding_dim = 8
+        self.gnn1 = SAGEConv(feature_num, hidden_num)
+        self.gnn2 = DropSAGEConv(hidden_num, hidden_num)
         self.attention_act = torch.nn.functional.tanh
         self.degree_enc = cafd.DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = cafd.TemporalFrequencyEncoder(encoding_dim)
@@ -52,6 +48,7 @@ class DropGCN(torch.nn.Module):
                    encodings[:, 1, :] * score[:, 1])
 
         h1 = self.lin_combine(torch.concat((h1, context), dim=1))
+
         out = self.out(h1)
         out = F.log_softmax(out, dim=1)
 
@@ -68,7 +65,7 @@ class DropGCN(torch.nn.Module):
         self.lin_combine.reset_parameters()
 
 
-class DropGCNConv(GCNConv):
+class DropSAGEConv(SAGEConv):
     def __init__(self,
                  in_channels: int,
                  out_channels: int):
@@ -78,14 +75,13 @@ class DropGCNConv(GCNConv):
         self.pre_transform_linear = Linear(out_channels, 8)
         self.label_score_predictor = torch.nn.Linear(8, 1)
 
-
     def message(self,
                 x_i: Tensor,
                 x_j: Tensor,
                 index: Tensor,
                 ptr: Tensor | None,
                 size_i: int | None):
-        out = super().message(x_j, None)
+        out = super().message(x_j)
         if not self.training:
             # return out * (1.0 - self.drop_rate)
             return out

@@ -75,20 +75,20 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     x = (x - x.mean(0)) / x.std(0)
     data.x = x
 
-    # # Get Node-out-degree
-    # data.node_out_degree = torch_geometric.utils.degree(
-    #     data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
-    #
-    # # Get average node-out-time-interval
-    # node_out_times = pd.DataFrame(
-    #     np.concatenate(
-    #         (data.edge_index[0].reshape(-1, 1), data.edge_time.int().reshape(-1, 1)), axis=-1),
-    #     columns=["node_out", "time"])
-    # edge_mean_out_time_interval = node_out_times.groupby("node_out").agg(_get_mean_out_time_interval)
-    # node_mean_out_time_interval = np.zeros(data.num_nodes)
-    # node_mean_out_time_interval[edge_mean_out_time_interval.index] = edge_mean_out_time_interval.values.flatten()
-    # data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1),
-    #                                                 dtype=data.edge_time.dtype)
+    # Get Node-out-degree
+    data.node_out_degree = torch_geometric.utils.degree(
+        data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+
+    # Get average node-out-time-interval
+    node_out_times = pd.DataFrame(
+        np.concatenate(
+            (data.edge_index[0].reshape(-1, 1), data.edge_time.int().reshape(-1, 1)), axis=-1),
+        columns=["node_out", "time"])
+    edge_mean_out_time_interval = node_out_times.groupby("node_out").agg(_get_mean_out_time_interval)
+    node_mean_out_time_interval = np.zeros(data.num_nodes)
+    node_mean_out_time_interval[edge_mean_out_time_interval.index] = edge_mean_out_time_interval.values.flatten()
+    data.node_mean_out_time_interval = torch.tensor(node_mean_out_time_interval.reshape(-1, 1),
+                                                    dtype=data.edge_time.dtype)
 
     # trans to undirected graph
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)

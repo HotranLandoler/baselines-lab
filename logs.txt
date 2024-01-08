@@ -554,3 +554,13 @@ AUC: [0.6194778680801392, 0.61890709400177, 0.6193907856941223]
 AP: [0.5797696113586426, 0.5795540809631348, 0.5821747779846191]
 Recall: [0.5040562152862549, 0.5036816596984863, 0.5054270625114441]
 Final AUC: 0.6193 ± 0.0003, Final AP: 0.5805 ± 0.0015, Final Recall: 0.5044 ± 0.0009,
+
+[2024-01-08 15:12:22]
+Model: GCN
+Dataset: Yelp
+Note:
+Settings: Namespace(epochs=2000, runs=3, save_log=True, plot=False, visualize=False, weight_decay=1e-05, num_classes=2, loss_weight=1, model='gcn', dataset='Yelp', device='cuda:0', hidden_size=64, num_layers=2, dropout=0.0, random_seed=0, lr=0.001, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=500, log_path='./logs.txt')
+AUC: [0.6388214230537415, 0.6502262353897095, 0.6592815518379211]
+AP: [0.5927282571792603, 0.5972778797149658, 0.6081717610359192]
+Recall: [0.524506151676178, 0.5250642895698547, 0.5266897082328796]
+Final AUC: 0.6494 ± 0.0103, Final AP: 0.5994 ± 0.0079, Final Recall: 0.5254 ± 0.0011,

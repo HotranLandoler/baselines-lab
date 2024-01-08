@@ -45,22 +45,22 @@ class GFCA(torch.nn.Module):
 
         h1 = self.conv(h1, data.edge_index, rel_t_enc)
 
-        # temporal_frequency_enc = self.temporal_frequency_enc(
-        #     data.node_mean_out_time_interval)
-        #
-        # degree_enc = self.degree_enc(data.node_out_degree)
-        #
-        # encodings = torch.stack((temporal_frequency_enc, degree_enc), dim=1)
-        # encodings_proj = self.attention_act(self.w_enc(encodings))
-        # x_proj = self.attention_act(self.w_x(h1)).unsqueeze(-1)
-        #
-        # score = torch.bmm(encodings_proj, x_proj)
-        # score = torch.nn.functional.softmax(score, dim=1)
-        #
-        # context = (encodings[:, 0, :] * score[:, 0] +
-        #            encodings[:, 1, :] * score[:, 1])
-        #
-        # h1 = self.lin_combine(torch.concat((h1, context), dim=1))
+        temporal_frequency_enc = self.temporal_frequency_enc(
+            data.node_mean_out_time_interval)
+
+        degree_enc = self.degree_enc(data.node_out_degree)
+
+        encodings = torch.stack((temporal_frequency_enc, degree_enc), dim=1)
+        encodings_proj = self.attention_act(self.w_enc(encodings))
+        x_proj = self.attention_act(self.w_x(h1)).unsqueeze(-1)
+
+        score = torch.bmm(encodings_proj, x_proj)
+        score = torch.nn.functional.softmax(score, dim=1)
+
+        context = (encodings[:, 0, :] * score[:, 0] +
+                   encodings[:, 1, :] * score[:, 1])
+
+        h1 = self.lin_combine(torch.concat((h1, context), dim=1))
 
         y_new = data.y
         train_mask_new = data.train_mask

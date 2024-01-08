@@ -1,5 +1,5 @@
 # Basic configs
-model = "amnet"
+model = "dropsage"
 dataset = "DGraph"
 device = "cuda:0"
 
@@ -53,9 +53,13 @@ weight_decay = 1e-5
 # GraphSAGE
 weight_decay = 5e-7
 
+[models.dropsage]
+# GraphSAGE with CAFD
+weight_decay = 5e-7
+
 [models.dropgcn]
-# GCN with DropMessage
-weight_decay = 0e-4
+# GCN with CAFD
+weight_decay = 1e-5
 
 [models.mlpdropgcn]
 # GCN with DropMessage, DropRate from MLP

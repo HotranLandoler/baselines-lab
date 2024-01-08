@@ -104,7 +104,7 @@ class MlpDropTransformerConv(TransformerConv):
         # print(f"drop rate[1]: {self.drop_rate[1][0].item()}")
         # print(f"drop rate[2]: {self.drop_rate[2][0].item()}")
 
-        out = _multi_dropout(out, probability=self.drop_rate)
+        out = multi_dropout(out, probability=self.drop_rate)
         # out = _drop_edge_by_rate(out, drop_rate=self.drop_rate)
 
         # out = _drop_edge(out, cos_similarity)
@@ -164,6 +164,6 @@ def _drop_edge_by_rate(message: Tensor, drop_rate: Tensor) -> Tensor:
     return mask * message
 
 
-def _multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
+def multi_dropout(x: Tensor, probability: Tensor) -> Tensor:
     mask: Tensor = torch.rand_like(x) > probability
     return mask * x  # / (1.0 - probability)

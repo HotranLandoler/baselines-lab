@@ -5,10 +5,12 @@ from torch import Tensor
 from torch.nn import Sequential, Linear, Sigmoid, Parameter
 from torch_geometric.nn import MessagePassing, GCNConv
 from torch_geometric.typing import OptTensor, Adj
+from typing_extensions import deprecated
 
 from models.gcn_drop import DropGCN, GNNLayer, BbGCN
 
 
+@deprecated
 class MlpDropGCN(DropGCN):
     """Perform *DropMessage* on GCN with **rate** predicted from an MLP model"""
 
