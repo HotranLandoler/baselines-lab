@@ -90,6 +90,12 @@ class Logger:
         column_titles = ["x1", "x2", "y"]
         df = pd.DataFrame(np.concatenate((data_benign, data_fraud), axis=0),
                           columns=column_titles)
-        plot = sns.scatterplot(df, x="x1", y="x2", hue="y", legend=False)
-        filename = f"tSNE-{self._model_name}-{self._dataset}.svg"
-        plot.get_figure().savefig(os.path.join(_PLOTS_PATH, filename))
+
+        sns.color_palette("colorblind")
+        plt.axis('off')
+        # plt.margins(0)
+        plot = sns.scatterplot(df, x="x1", y="x2", hue="y", s=50, legend=False)
+
+        filename = f"tSNE-{self._model_name}-{self._dataset}.pdf"
+        plot.get_figure().savefig(os.path.join(_PLOTS_PATH, filename),
+                                  bbox_inches="tight", pad_inches=0)

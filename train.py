@@ -162,7 +162,8 @@ def _train_epoch(model: torch.nn.Module,
         _, output, bias_loss = model(data.x, edge_index,
                                      label=(anomaly_label, normal_label))
         beta = 1.0
-        loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask]) +
+        loss = (func.nll_loss(output[data.train_mask], data.y[data.train_mask],
+                              weight=loss_weight) +
                 bias_loss * beta)
     elif args.model == "dagad":
         criterion = func.cross_entropy

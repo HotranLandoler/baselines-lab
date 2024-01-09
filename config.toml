@@ -1,9 +1,9 @@
 # Basic configs
-model = "gfca"
+model = "amnet"
 dataset = "DGraph"
 device = "cuda:0"
 
-encoding_size = 4
+encoding_size = 8
 hidden_size = 32
 num_layers = 2
 dropout = 0.0
@@ -18,7 +18,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP", "Recall"]
 
 use_early_stopping = true
-early_stopping_patience = 50
+early_stopping_patience = 100
 
 log_path = "./logs.txt"
 
