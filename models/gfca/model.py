@@ -11,9 +11,8 @@ from models.gfca.layers import (DegreeEncoder, TemporalFrequencyEncoder, MlpDrop
 
 
 class GFCA(torch.nn.Module):
-    def __init__(self, in_channels: int, hid_channels: int, out_channels: int, edge_dim=32):
+    def __init__(self, in_channels: int, hid_channels: int, out_channels: int, encoding_dim: int, edge_dim=32):
         super().__init__()
-        encoding_dim = 8
         self.attention_act = torch.nn.functional.tanh
 
         self.time_enc = TimeEncode(32)
