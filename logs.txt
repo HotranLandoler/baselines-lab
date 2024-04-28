@@ -564,3 +564,23 @@ AUC: [0.6388214230537415, 0.6502262353897095, 0.6592815518379211]
 AP: [0.5927282571792603, 0.5972778797149658, 0.6081717610359192]
 Recall: [0.524506151676178, 0.5250642895698547, 0.5266897082328796]
 Final AUC: 0.6494 ± 0.0103, Final AP: 0.5994 ± 0.0079, Final Recall: 0.5254 ± 0.0011,
+
+[2024-04-25 18:08:08]
+Model: GFCA
+Dataset: DGraph
+Note: Train 30%
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='gfca', dataset='DGraph', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8085794448852539, 0.8137019872665405, 0.8087804913520813]
+AP: [0.5217998027801514, 0.5233232975006104, 0.5216058492660522]
+Recall: [0.7301420569419861, 0.7353309392929077, 0.7286316156387329]
+Final AUC: 0.8104 ± 0.0029, Final AP: 0.5222 ± 0.0009, Final Recall: 0.7314 ± 0.0035,
+
+[2024-04-26 09:04:34]
+Model: GFCA
+Dataset: DGraph
+Note: Train 10%
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='gfca', dataset='DGraph', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.0, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.7937065362930298, 0.8023531436920166, 0.8012325763702393]
+AP: [0.5190567374229431, 0.5209039449691772, 0.5200010538101196]
+Recall: [0.7148689031600952, 0.7182159423828125, 0.7145342826843262]
+Final AUC: 0.7991 ± 0.0047, Final AP: 0.5200 ± 0.0009, Final Recall: 0.7159 ± 0.0020,

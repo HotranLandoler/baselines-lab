@@ -94,6 +94,16 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
 
+    train_subset = True
+    if train_subset:
+        total_size = data.train_mask.shape[0] + data.val_mask.shape[0] + data.test_mask.shape[0]
+        print(f"Original Ratio: {data.train_mask.shape[0] / total_size}% Train mask size: {data.train_mask.shape[0]}")
+        train_ratio = 0.1
+        subset_size = int(total_size * train_ratio)
+        subset_index = torch.randperm(data.train_mask.shape[0])[:subset_size]
+        data.train_mask = data.train_mask[subset_index]
+        print(f"Ratio: {train_ratio}, Subset size: {subset_size}, Train mask size: {data.train_mask.shape}")
+
     # Process for DAGAD model
     if is_model_dagad:
         anomaly_mask: Tensor = data.y == 1
