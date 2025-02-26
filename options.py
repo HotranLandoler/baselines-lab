@@ -1,5 +1,5 @@
 """Prepare experiment settings"""
-import tomli
+import tomllib
 from argparse import ArgumentParser
 from argparse import Namespace
 from typing import Literal, Any
@@ -24,7 +24,7 @@ def prepare_args():
 def _parse_configs(args: Namespace):
     """Parse the toml config file and add to args"""
     with open(_CONFIG_PATH, "rb") as file:
-        configs = tomli.load(file)
+        configs = tomllib.load(file)
     # Add model/dataset specific args
     _add_specific_args(configs, args, prefix="models", key="model")
     _add_specific_args(configs, args, prefix="datasets", key="dataset")

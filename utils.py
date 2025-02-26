@@ -1,5 +1,7 @@
+import pickle
 import random
 from argparse import Namespace
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -15,6 +17,10 @@ import models.h2gcn.utils
 from models import GCN, DropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, DropSAGE, AMNet, GFCA
 from models.dagad import DAGAD
 
+
+def load_tpa_embedding(dataset_name: str) -> Tensor:
+    path = Path("data") / f"TPA-{dataset_name}.embedding"
+    return torch.load(path, pickle_module=pickle)
 
 def prepare_data_and_model(args: Namespace) -> tuple[Data, Module]:
     """Get processed data and model based on training setting.

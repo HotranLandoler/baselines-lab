@@ -18,6 +18,7 @@ from models.dagad import GeneralizedCELoss1
 
 
 def main():
+    # torch.autograd.set_detect_anomaly(True)
     # Experiment setup
     args = options.prepare_args()
     utils.set_random_seed(args.random_seed)

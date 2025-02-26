@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch import Tensor
+from torch.nn import Linear
 from torch_geometric.data import Data
 from torch_geometric.nn import TransformerConv
 from torch_sparse import SparseTensor
@@ -18,6 +19,7 @@ class GFCA(torch.nn.Module):
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
+        self.temporal_embedding_reduce = Linear(64, encoding_dim)
 
         self.w_enc = torch.nn.Linear(encoding_dim, encoding_dim)
         self.w_x = torch.nn.Linear(hid_channels, encoding_dim)
@@ -46,6 +48,7 @@ class GFCA(torch.nn.Module):
 
         temporal_frequency_enc = self.temporal_frequency_enc(
             data.node_mean_out_time_interval)
+        temporal_frequency_enc = temporal_frequency_enc + self.temporal_embedding_reduce(data.temporal_embedding)
 
         degree_enc = self.degree_enc(data.node_out_degree)
 
@@ -79,5 +82,6 @@ class GFCA(torch.nn.Module):
 
         self.degree_enc.reset_parameters()
         self.temporal_frequency_enc.reset_parameters()
+        self.temporal_embedding_reduce.reset_parameters()
 
         self.lin_combine.reset_parameters()

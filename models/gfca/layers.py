@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 import math
 
@@ -78,7 +78,7 @@ class MlpDropTransformerConv(TransformerConv):
 
     def message(self, query_i: Tensor, key_j: Tensor, value_j: Tensor,
                 edge_attr: OptTensor, index: Tensor, ptr: OptTensor,
-                size_i: int | None,
+                size_i: Optional[int],
                 # label_score_i: Tensor, label_score_j: Tensor
                 ) -> Tensor:
         out = super().message(query_i, key_j, value_j, edge_attr, index, ptr, size_i)

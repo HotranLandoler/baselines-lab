@@ -16,6 +16,7 @@ from torch_geometric.data import Data
 from torch_geometric.datasets import Planetoid, JODIEDataset
 from torch_geometric.transforms import BaseTransform
 
+import utils
 from models.graph_smote import GraphSmote
 
 DATA_ROOT = "./data/"
@@ -94,7 +95,7 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
 
-    train_subset = True
+    train_subset = False
     if train_subset:
         total_size = data.train_mask.shape[0] + data.val_mask.shape[0] + data.test_mask.shape[0]
         print(f"Original Ratio: {data.train_mask.shape[0] / total_size}% Train mask size: {data.train_mask.shape[0]}")
@@ -116,6 +117,8 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
 
         data.train_anm = data.train_mask * anomaly_mask
         data.train_norm = data.train_mask * benign_mask
+
+    data.temporal_embedding = utils.load_tpa_embedding("DGraph")
 
     return data
 

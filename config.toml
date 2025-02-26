@@ -1,5 +1,5 @@
 # Basic configs
-model = "tgat"
+model = "gfca"
 dataset = "DGraph"
 device = "cuda:0"
 

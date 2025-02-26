@@ -1,39 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="chaoli@10.239.1.5:2201 password" overwriteAll="false" deleteMissingItems="true" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.cqa1.seetacloud.com:23990 password" overwriteAll="false" deleteMissingItems="true" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
     <serverData>
-      <paths name="care">
+      <paths name="chaoli@10.242.17.8:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/chaoli/source/baselines-lab" local="$PROJECT_DIR$" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="chaoli@10.236.11.37:2201 password">
+      <paths name="chaoli@10.242.17.8:22 password (2)">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_991" local="$PROJECT_DIR$" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="chaoli@10.236.11.37:2201 password (2)">
+      <paths name="root@connect.cqa1.seetacloud.com:23990 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_49" local="$PROJECT_DIR$" />
+            <mapping deploy="/root/autodl-tmp/source/baselines-lab" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="chaoli@10.239.1.5:2201 password">
+      <paths name="root@connect.cqa1.seetacloud.com:23990 password (2)">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/chaoli/source/baselines-lab" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="chaoli@Remote">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/source/baselines-lab" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
