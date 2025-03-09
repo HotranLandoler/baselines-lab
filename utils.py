@@ -138,7 +138,8 @@ def _prepare_model(args: Namespace, data: Data) -> Module:
             model = GFCA(in_channels=data.num_features,
                          hid_channels=args.hidden_size,
                          out_channels=args.num_classes,
-                         encoding_dim=args.encoding_size)
+                         encoding_dim=args.encoding_size,
+                         dropout=args.dropout)
         case _:
             raise NotImplementedError(f"Model {args.model} not implemented")
 

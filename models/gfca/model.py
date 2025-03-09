@@ -12,7 +12,7 @@ from models.gfca.layers import (DegreeEncoder, TemporalFrequencyEncoder, MlpDrop
 
 
 class GFCA(torch.nn.Module):
-    def __init__(self, in_channels: int, hid_channels: int, out_channels: int, encoding_dim: int, edge_dim=32):
+    def __init__(self, in_channels: int, hid_channels: int, out_channels: int, encoding_dim: int, dropout: float, edge_dim=32):
         super().__init__()
         self.attention_act = torch.nn.functional.tanh
 
@@ -36,19 +36,27 @@ class GFCA(torch.nn.Module):
         self.lin_combine = torch.nn.Linear(hid_channels + encoding_dim, hid_channels)
         self.out = torch.nn.Linear(hid_channels, out_channels)
 
+        self.linear_context = torch.nn.Linear(encoding_dim + encoding_dim, encoding_dim)
+        self.dropout = dropout
+
     def forward(self, x: Tensor, edge_index: Tensor | SparseTensor, data: Data,
                 **kwargs):
         rel_t = data.node_time[data.edge_index[0]].view(-1, 1) - data.edge_time
         rel_t_enc = self.time_enc(rel_t.to(data.x.dtype))
 
-        h1 = self.lin(x)
-        h1 = F.relu(h1)
+        x = self.lin(x)
+        x = F.relu(x)
+        x = F.dropout(x, p=self.dropout, training=self.training)
 
-        h1 = self.conv(h1, data.edge_index, rel_t_enc)
+        h1 = self.conv(x, data.edge_index, rel_t_enc)
 
         temporal_frequency_enc = self.temporal_frequency_enc(
             data.node_mean_out_time_interval)
-        temporal_frequency_enc = temporal_frequency_enc + self.temporal_embedding_reduce(data.temporal_embedding)
+        temporal_embedding = self.temporal_embedding_reduce(data.temporal_embedding)
+        # temporal_embedding = F.relu(temporal_embedding)
+        # temporal_embedding = self.temporal_embedding_reduce2(temporal_embedding)
+
+        temporal_frequency_enc = temporal_frequency_enc + temporal_embedding
 
         degree_enc = self.degree_enc(data.node_out_degree)
 
@@ -61,6 +69,8 @@ class GFCA(torch.nn.Module):
 
         context = (encodings[:, 0, :] * score[:, 0] +
                    encodings[:, 1, :] * score[:, 1])
+        # context = self.linear_context(torch.concat((temporal_frequency_enc, degree_enc), dim=1))
+        # context = F.relu(context)
 
         h1 = self.lin_combine(torch.concat((h1, context), dim=1))
 
@@ -83,5 +93,6 @@ class GFCA(torch.nn.Module):
         self.degree_enc.reset_parameters()
         self.temporal_frequency_enc.reset_parameters()
         self.temporal_embedding_reduce.reset_parameters()
+        self.linear_context.reset_parameters()
 
         self.lin_combine.reset_parameters()

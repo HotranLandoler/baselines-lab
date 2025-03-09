@@ -6,7 +6,7 @@ device = "cuda:0"
 encoding_size = 8
 hidden_size = 32
 num_layers = 2
-dropout = 0.0
+dropout = 0.1
 random_seed = 0
 
 # Learning rate
@@ -18,7 +18,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP", "Recall"]
 
 use_early_stopping = true
-early_stopping_patience = 50
+early_stopping_patience = 100
 
 log_path = "./logs.txt"
 
@@ -88,4 +88,4 @@ weight_decay = 1e-5
 
 [models.gfca]
 # GFCA
-weight_decay = 5e-7
+weight_decay = 1e-4
