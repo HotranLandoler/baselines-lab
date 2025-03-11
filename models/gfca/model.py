@@ -18,6 +18,7 @@ class GFCA(torch.nn.Module):
 
         self.time_enc = TimeEncode(32)
         self.degree_enc = DegreeEncoder(encoding_dim)
+        self.degree_enc2 = DegreeEncoder(encoding_dim)
         self.temporal_frequency_enc = TemporalFrequencyEncoder(encoding_dim)
         self.temporal_embedding_reduce = Linear(64, encoding_dim)
 
@@ -58,7 +59,7 @@ class GFCA(torch.nn.Module):
 
         temporal_frequency_enc = temporal_frequency_enc + temporal_embedding
 
-        degree_enc = self.degree_enc(data.node_out_degree)
+        degree_enc = self.degree_enc(data.node_out_degree) + self.degree_enc2(data.node_in_degree)
 
         encodings = torch.stack((temporal_frequency_enc, degree_enc), dim=1)
         encodings_proj = self.attention_act(self.w_enc(encodings))
@@ -91,6 +92,7 @@ class GFCA(torch.nn.Module):
         self.out.reset_parameters()
 
         self.degree_enc.reset_parameters()
+        self.degree_enc2.reset_parameters()
         self.temporal_frequency_enc.reset_parameters()
         self.temporal_embedding_reduce.reset_parameters()
         self.linear_context.reset_parameters()

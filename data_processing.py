@@ -73,12 +73,16 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
 
     # Normalization
     x: Tensor = data.x
+    x[x == -1.] = 0.
     x = (x - x.mean(0)) / x.std(0)
     data.x = x
 
     # Get Node-out-degree
     data.node_out_degree = torch_geometric.utils.degree(
         data.edge_index[0], num_nodes=data.num_nodes).reshape(-1, 1)
+
+    data.node_in_degree = torch_geometric.utils.degree(
+        data.edge_index[1], num_nodes=data.num_nodes).reshape(-1, 1)
 
     # Get average node-out-time-interval
     node_out_times = pd.DataFrame(
