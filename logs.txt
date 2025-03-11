@@ -624,3 +624,33 @@ AUC: [0.8373626470565796, 0.8378111124038696, 0.8383826017379761]
 AP: [0.5296515226364136, 0.5294952988624573, 0.5293698310852051]
 Recall: [0.7602145671844482, 0.7612287998199463, 0.7598978281021118]
 Final AUC: 0.8379 ± 0.0005, Final AP: 0.5295 ± 0.0001, Final Recall: 0.7604 ± 0.0007,
+
+[2025-03-11 17:06:42]
+Model: CAFD
+Dataset: DGraph
+Note: encoding size = 4
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=0.0001, num_classes=2, loss_weight=50, model='gfca', dataset='DGraph', device='cuda:0', encoding_size=4, hidden_size=32, num_layers=2, dropout=0.1, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=100, log_path='./logs.txt')
+AUC: [0.8386895060539246, 0.835220456123352, 0.8373076319694519]
+AP: [0.5293104648590088, 0.5282728672027588, 0.5282268524169922]
+Recall: [0.7584228515625, 0.7587125301361084, 0.7590716481208801]
+Final AUC: 0.8371 ± 0.0017, Final AP: 0.5286 ± 0.0006, Final Recall: 0.7587 ± 0.0003,
+
+[2025-03-11 17:14:53]
+Model: CAFD
+Dataset: DGraph
+Note: encoding size = 16
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=0.0001, num_classes=2, loss_weight=50, model='gfca', dataset='DGraph', device='cuda:0', encoding_size=16, hidden_size=32, num_layers=2, dropout=0.1, random_seed=0, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=100, log_path='./logs.txt')
+AUC: [0.8396615982055664, 0.840069055557251, 0.8374241590499878]
+AP: [0.5298121571540833, 0.5298818349838257, 0.5288773775100708]
+Recall: [0.7611097097396851, 0.7571243047714233, 0.7577795386314392]
+Final AUC: 0.8391 ± 0.0014, Final AP: 0.5295 ± 0.0006, Final Recall: 0.7587 ± 0.0021,
+
+[2025-03-11 17:33:55]
+Model: GFCA
+Dataset: DGraph
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=0.0001, num_classes=2, loss_weight=50, model='gfca', dataset='DGraph', device='cuda:0', encoding_size=32, hidden_size=32, num_layers=2, dropout=0.1, random_seed=72, lr=0.01, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=100, log_path='./logs.txt')
+AUC: [0.8408556580543518, 0.8394339680671692, 0.8406354188919067]
+AP: [0.5302732586860657, 0.5284368991851807, 0.5301405787467957]
+Recall: [0.7647573947906494, 0.7639526128768921, 0.7605785131454468]
+Final AUC: 0.8403 ± 0.0008, Final AP: 0.5296 ± 0.0010, Final Recall: 0.7631 ± 0.0022,
