@@ -7,7 +7,7 @@ encoding_size = 8
 hidden_size = 32
 num_layers = 2
 dropout = 0.1
-random_seed = 0
+random_seed = 72
 
 # Learning rate
 lr = 0.01
