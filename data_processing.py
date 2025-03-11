@@ -99,7 +99,7 @@ def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     data.edge_index = torch.cat((data.edge_index, data.edge_index[[1, 0], :]), dim=1)
     data.edge_time = torch.cat((data.edge_time, data.edge_time), dim=0)
 
-    train_subset = True
+    train_subset = False
     if train_subset:
         total_size = data.train_mask.shape[0] + data.val_mask.shape[0] + data.test_mask.shape[0]
         print(f"Original Ratio: {data.train_mask.shape[0] / total_size}% Train mask size: {data.train_mask.shape[0]}")
