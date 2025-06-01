@@ -46,6 +46,11 @@ def get_yelp() -> Data:
     return pickle.load(open(f'{DATA_ROOT}yelp.dat', 'rb'))
 
 
+def get_elliptic() -> Data:
+    print("Loading Elliptic dataset...")
+    return pickle.load(open(f'{DATA_ROOT}elliptic.dat', 'rb'))
+
+
 def process_dgraph(data: Data, max_time_steps=32, is_model_dagad=False) -> Data:
     """Perform pre-processing on DGraph before training.
 
@@ -250,6 +255,14 @@ def process_yelpchi(data: Data, train_ratio=0.4, test_ratio=0.67) -> Data:
     data.val_mask = pyg_utils.mask_to_index(data.val_mask)
     data.test_mask = pyg_utils.mask_to_index(data.test_mask)
 
+    return data
+
+
+def process_elliptic(data: Data) -> Data:
+    x: Tensor = data.x
+    x = (x - x.mean(0)) / x.std(0)
+    data.x = x
+    data = process_yelpchi(data)
     return data
 
 

@@ -79,6 +79,8 @@ def _prepare_data(args: Namespace) -> Data:
         case "Yelp":
             # data = datasets.YelpChiDataset(transform=dataset_transform)[0]
             data = data_processing.get_yelp()
+        case "Elliptic":
+            data = data_processing.get_elliptic()
         case "Ethereum":
             # onehot_degree = torch_geometric.transforms.OneHotDegree(max_degree=16, cat=False)
             data = datasets.EthereumDataset(transform=dataset_transform)[0]
@@ -155,6 +157,8 @@ def _process_data(args: Namespace, data: Data) -> Data:
             return data_processing.process_yelpchi(data)
         case "Wikipedia":
             return data_processing.process_jodie(data)
+        case "Elliptic":
+            return data_processing.process_elliptic(data)
         case "Ethereum":
             return data_processing.process_ethereum(data)
         case _:

@@ -1,16 +1,16 @@
 # Basic configs
 model = "gfca"
-dataset = "DGraph"
+dataset = "Elliptic"
 device = "cuda:0"
 
-encoding_size = 8
-hidden_size = 32
+encoding_size = 64
+hidden_size = 128
 num_layers = 2
 dropout = 0.1
 random_seed = 72
 
 # Learning rate
-lr = 0.01
+lr = 0.0001
 
 # Drop Message rate
 drop_rate = 0.25
@@ -18,7 +18,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP", "Recall"]
 
 use_early_stopping = true
-early_stopping_patience = 100
+early_stopping_patience = 500
 
 log_path = "./logs.txt"
 
@@ -39,6 +39,10 @@ loss_weight = 50
 [datasets.Yelp]
 num_classes = 2
 loss_weight = 1
+
+[datasets.Elliptic]
+num_classes = 2
+loss_weight = 50
 
 [datasets.Ethereum]
 num_classes = 2
@@ -88,4 +92,4 @@ weight_decay = 1e-5
 
 [models.gfca]
 # GFCA
-weight_decay = 1e-4
+weight_decay = 1e-3
