@@ -14,6 +14,7 @@ from torch_geometric.data import Data
 import data_processing
 import datasets
 import models.h2gcn.utils
+from datasets.elliptic import Elliptic
 from models import GCN, DropGCN, H2GCN, H2GCN_EGO, MLP, TGAT, GraphSAGE, DropSAGE, AMNet, GFCA
 from models.dagad import DAGAD
 
@@ -80,7 +81,7 @@ def _prepare_data(args: Namespace) -> Data:
             # data = datasets.YelpChiDataset(transform=dataset_transform)[0]
             data = data_processing.get_yelp()
         case "Elliptic":
-            data = data_processing.get_elliptic()
+            data = Elliptic().process()
         case "Ethereum":
             # onehot_degree = torch_geometric.transforms.OneHotDegree(max_degree=16, cat=False)
             data = datasets.EthereumDataset(transform=dataset_transform)[0]
@@ -158,7 +159,7 @@ def _process_data(args: Namespace, data: Data) -> Data:
         case "Wikipedia":
             return data_processing.process_jodie(data)
         case "Elliptic":
-            return data_processing.process_elliptic(data)
+            return data
         case "Ethereum":
             return data_processing.process_ethereum(data)
         case _:

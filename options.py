@@ -10,7 +10,7 @@ _CONFIG_PATH = "config.toml"
 def prepare_args():
     """Build a parser and prepare experiment args"""
     parser = ArgumentParser(description="Prepare args")
-    parser.add_argument('--epochs', type=int, default=2000)
+    parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--runs', type=int, default=3)
     # parser.add_argument('--loss-weight', type=int, default=50)
     parser.add_argument('--save-log', action='store_true', default=True, help='save experiment log to file')

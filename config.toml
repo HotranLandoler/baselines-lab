@@ -3,14 +3,14 @@ model = "gfca"
 dataset = "Elliptic"
 device = "cuda:0"
 
-encoding_size = 64
-hidden_size = 128
+encoding_size = 8
+hidden_size = 32
 num_layers = 2
 dropout = 0.1
 random_seed = 72
 
 # Learning rate
-lr = 0.0001
+lr = 0.001
 
 # Drop Message rate
 drop_rate = 0.25
@@ -18,7 +18,7 @@ drop_rate = 0.25
 metrics = ["AUC", "AP", "Recall"]
 
 use_early_stopping = true
-early_stopping_patience = 500
+early_stopping_patience = 50
 
 log_path = "./logs.txt"
 
