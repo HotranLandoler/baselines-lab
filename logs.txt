@@ -683,7 +683,7 @@ Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=Fal
 AUC: [0.8121123313903809, 0.8113090991973877, 0.809162437915802]
 AP: [0.5234674215316772, 0.5217944979667664, 0.52250075340271]
 Recall: [0.7326879501342773, 0.7329103946685791, 0.7319165468215942]
-Final AUC: 0.8109 ± 0.0015, Final AP: 0.5226 ± 0.0008, Final Recall: 0.7325 ± 0.0005,
+Final AUC: 0.8109 ± 0.0015, Final AP: 0.5226 ± 0.0008, Final Recall: 0.7325 ± 0.0005,'
 
 [2025-07-07 16:55:56]
 Model: MLP
@@ -704,3 +704,43 @@ AUC: [0.8498702049255371, 0.8426084518432617, 0.8440007567405701]
 AP: [0.5659201145172119, 0.5646635293960571, 0.5581510663032532]
 Recall: [0.500248372554779, 0.5379781126976013, 0.5095395445823669]
 Final AUC: 0.8455 ± 0.0039, Final AP: 0.5629 ± 0.0042, Final Recall: 0.5159 ± 0.0197,
+
+[2025-07-08 15:49:38]
+Model: AMNET
+Dataset: Elliptic
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=1e-05, num_classes=2, loss_weight=50, model='amnet', dataset='Elliptic', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.1, random_seed=72, lr=0.001, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8394919633865356, 0.8500619530677795, 0.8450262546539307]
+AP: [0.5499117374420166, 0.5695791244506836, 0.5718943476676941]
+Recall: [0.5010361671447754, 0.5027449727058411, 0.5034475326538086]
+Final AUC: 0.8449 ± 0.0053, Final AP: 0.5638 ± 0.0121, Final Recall: 0.5024 ± 0.0012,
+
+[2025-07-08 15:51:40]
+Model: TGAT
+Dataset: Elliptic
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='tgat', dataset='Elliptic', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.1, random_seed=72, lr=0.001, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8559054136276245, 0.851123571395874, 0.8503319025039673]
+AP: [0.5960699915885925, 0.5870435237884521, 0.5703375339508057]
+Recall: [0.5789472460746765, 0.6380071043968201, 0.5485791563987732]
+Final AUC: 0.8525 ± 0.0030, Final AP: 0.5845 ± 0.0131, Final Recall: 0.5885 ± 0.0455,
+
+[2025-07-08 15:56:35]
+Model: GCN
+Dataset: Elliptic
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=1e-05, num_classes=2, loss_weight=50, model='gcn', dataset='Elliptic', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.1, random_seed=72, lr=0.001, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.6540752649307251, 0.6761966943740845, 0.7049713134765625]
+AP: [0.5087727904319763, 0.5107337236404419, 0.515056848526001]
+Recall: [0.5642365217208862, 0.5234668850898743, 0.5503575205802917]
+Final AUC: 0.6784 ± 0.0255, Final AP: 0.5115 ± 0.0032, Final Recall: 0.5460 ± 0.0207,
+
+[2025-07-08 15:57:59]
+Model: SAGE
+Dataset: Elliptic
+Note:
+Settings: Namespace(epochs=500, runs=3, save_log=True, plot=False, visualize=False, weight_decay=5e-07, num_classes=2, loss_weight=50, model='sage', dataset='Elliptic', device='cuda:0', encoding_size=8, hidden_size=32, num_layers=2, dropout=0.1, random_seed=72, lr=0.001, drop_rate=0.25, metrics=['AUC', 'AP', 'Recall'], use_early_stopping=True, early_stopping_patience=50, log_path='./logs.txt')
+AUC: [0.8227338790893555, 0.825729250907898, 0.8184722065925598]
+AP: [0.5520378947257996, 0.5559737086296082, 0.5582762956619263]
+Recall: [0.5781817436218262, 0.5973113179206848, 0.5825753211975098]
+Final AUC: 0.8223 ± 0.0036, Final AP: 0.5554 ± 0.0032, Final Recall: 0.5860 ± 0.0100,
